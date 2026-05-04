@@ -50,23 +50,21 @@ _None at this time._
 | 2026-05-05 | PDF library | QuestPDF (MIT, .NET 8) | Free, well-maintained, clean API; no paid service needed |
 | 2026-05-05 | Backend hosting | Railway (primary) | Free-tier-friendly, Docker/Nixpacks, easy env vars |
 | 2026-05-05 | Staff/Accountant role | Deferred to backlog | Adds auth complexity with low MVP ROI |
+| 2026-05-05 | Reminder scheduling | GitHub Actions Cron → `POST /api/reminders/trigger` | Railway free tier pauses containers; external trigger is more reliable than in-process Hangfire |
+| 2026-05-05 | TenantProfile storage | Separate `TenantProfile` table (FK to `Users`) | Keeps `Users` as a clean auth-mirror; tenant-specific fields (idUrl, emergencyContact) stay isolated |
+| 2026-05-05 | Delete behavior | Soft delete (`IsDeleted` flag) on properties and leases | Preserves audit log accuracy; prevents cascade data loss; hard delete only for non-critical records |
 
 ---
 
 ## Open Questions
 
-| # | Question | Impact |
-|---|----------|--------|
-| 1 | Hangfire or Railway Cron + GitHub Actions for reminder job? | Affects reminder reliability and deployment complexity |
-| 2 | `TenantProfile` extension table, or store `tenantIdUrl` on `Users`? | Minor schema decision before Wave 1 EF migration |
-| 3 | Soft delete (IsDeleted flag) or hard delete for properties/leases? | Affects audit log accuracy and cascade rules |
+_All questions resolved. Ready to begin Wave 1._
 
 ---
 
 ## Upcoming (Wave 1 Start Checklist)
 
-1. Resolve Open Question #2 (tenantIdUrl on Users vs. separate table)
-2. Create Supabase project and note all credentials
+1. Create Supabase project and note all credentials
 3. Create Stripe account (test mode)
 4. Create SendGrid account and verify sender email
 5. Create Railway account
