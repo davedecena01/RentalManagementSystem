@@ -22,9 +22,11 @@ builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptio
 // ------------------------------------------------------------
 // Database
 // ------------------------------------------------------------
-var connectionString = builder.Configuration["DATABASE_URL"]
+var rawConnection = builder.Configuration["DATABASE_URL"]
     ?? builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("DATABASE_URL is not configured.");
+
+var connectionString = ParseConnectionString(rawConnection);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
@@ -118,3 +120,19 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static string ParseConnectionString(string cs)
+{
+    if (!cs.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) &&
+        !cs.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+        return cs;
+
+    var uri = new Uri(cs);
+    var parts = uri.UserInfo.Split(':');
+    var user = parts[0];
+    var pass = parts.Length > 1 ? Uri.UnescapeDataString(parts[1]) : string.Empty;
+    var db = uri.AbsolutePath.TrimStart('/');
+    var port = uri.Port > 0 ? uri.Port : 5432;
+
+    return $"Host={uri.Host};Port={port};Database={db};Username={user};Password={pass};SSL Mode=Require;Trust Server Certificate=true";
+}
