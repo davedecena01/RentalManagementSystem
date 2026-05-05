@@ -1,0 +1,30 @@
+# Environment secrets — NEVER commit
+.env
+.env.local
+.env.*.local
+
+# .NET / C#
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.swp
+TestResults/
+*.nupkg
+*.snupkg
+
+# Angular / Node
+node_modules/
+dist/
+.angular/
+*.js.map
+
+# OS
+.DS_Store
+Thumbs.db
+
+# JetBrains / VS Code
+.idea/
+*.iml
+.vscode/
