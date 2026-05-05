@@ -1,0 +1,66 @@
+@if (isLoggedIn()) {
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span>RentalPM</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">&#9732;</span> Dashboard
+        </a>
+
+        @if (user()?.role === 'Landlord') {
+          <a routerLink="/properties" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">&#8962;</span> Properties
+          </a>
+          <a routerLink="/leases" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">&#128196;</span> Leases
+          </a>
+        }
+
+        <a routerLink="/payments" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">&#36;</span> Payments
+        </a>
+        <a routerLink="/maintenance" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">&#128295;</span> Maintenance
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a routerLink="/account" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">&#128100;</span> Account
+        </a>
+        <button class="nav-item nav-btn" (click)="signOut()">
+          <span class="nav-icon">&#8594;</span> Sign out
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="main">
+      <header class="topbar">
+        @if (user()) {
+          <span class="topbar-user">{{ user()!.firstName }} {{ user()!.lastName }}</span>
+          <span class="role-badge">{{ user()!.role }}</span>
+        }
+      </header>
+      <main class="content">
+        <router-outlet />
+      </main>
+    </div>
+  </div>
+} @else {
+  <router-outlet />
+}
+
+<!-- Toast notifications -->
+<div class="toast-container">
+  @for (t of toasts(); track t.id) {
+    <div class="toast toast-{{ t.type }}">
+      <span>{{ t.message }}</span>
+      <button class="toast-close" (click)="dismissToast(t.id)">&#215;</button>
+    </div>
+  }
+</div>

@@ -1,0 +1,17 @@
+name: Daily Rent Reminders
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # 02:00 UTC daily
+  workflow_dispatch:       # allow manual trigger for testing
+
+jobs:
+  send-reminders:
+    name: Trigger reminder endpoint
+    runs-on: ubuntu-latest
+    steps:
+      - name: POST /api/reminders/trigger
+        run: |
+          curl -f -X POST "${{ secrets.API_URL }}/api/reminders/trigger" \
+            -H "X-Internal-Key: ${{ secrets.INTERNAL_API_KEY }}" \
+            -H "Content-Type: application/json"

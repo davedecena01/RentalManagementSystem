@@ -1,0 +1,45 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h1>Accept invitation</h1>
+    <p class="auth-subtitle">Set up your tenant account.</p>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">First name</label>
+          <input id="firstName" type="text" formControlName="firstName" />
+          @if (firstName.invalid && firstName.touched) {
+            <span class="field-error">Required.</span>
+          }
+        </div>
+        <div class="form-group">
+          <label for="lastName">Last name</label>
+          <input id="lastName" type="text" formControlName="lastName" />
+          @if (lastName.invalid && lastName.touched) {
+            <span class="field-error">Required.</span>
+          }
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" formControlName="password" placeholder="Min. 8 characters" />
+        @if (password.invalid && password.touched) {
+          <span class="field-error">Minimum 8 characters.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Confirm password</label>
+        <input id="confirmPassword" type="password" formControlName="confirmPassword" />
+        @if (form.hasError('passwordMismatch') && confirmPassword.touched) {
+          <span class="field-error">Passwords do not match.</span>
+        }
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" [disabled]="loading">
+        {{ loading ? 'Setting up account…' : 'Activate account' }}
+      </button>
+    </form>
+  </div>
+</div>

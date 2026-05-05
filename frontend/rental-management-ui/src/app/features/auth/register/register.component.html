@@ -1,0 +1,57 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h1>Create account</h1>
+    <p class="auth-subtitle">Rental Property Manager</p>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">First name</label>
+          <input id="firstName" type="text" formControlName="firstName" />
+          @if (firstName.invalid && firstName.touched) {
+            <span class="field-error">First name is required.</span>
+          }
+        </div>
+        <div class="form-group">
+          <label for="lastName">Last name</label>
+          <input id="lastName" type="text" formControlName="lastName" />
+          @if (lastName.invalid && lastName.touched) {
+            <span class="field-error">Last name is required.</span>
+          }
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" type="email" formControlName="email" placeholder="you@example.com" />
+        @if (email.invalid && email.touched) {
+          <span class="field-error">Enter a valid email address.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" formControlName="password" placeholder="Min. 8 characters" />
+        @if (password.invalid && password.touched) {
+          <span class="field-error">Password must be at least 8 characters.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Confirm password</label>
+        <input id="confirmPassword" type="password" formControlName="confirmPassword" />
+        @if (form.hasError('passwordMismatch') && confirmPassword.touched) {
+          <span class="field-error">Passwords do not match.</span>
+        }
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" [disabled]="loading">
+        {{ loading ? 'Creating account…' : 'Create account' }}
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      Already have an account? <a routerLink="/auth/login">Sign in</a>
+    </p>
+  </div>
+</div>
