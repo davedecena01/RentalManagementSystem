@@ -11,14 +11,10 @@ namespace RentalManagementApi.Controllers;
 public class AuthController(AuthService authService) : ControllerBase
 {
     [HttpPost("register")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var supabaseId = GetCurrentUserId();
-        if (supabaseId is null)
-            return Unauthorized(new ApiError("Invalid token.", "UNAUTHORIZED"));
-
-        var user = await authService.RegisterAsync(supabaseId.Value, request);
+        var user = await authService.RegisterAsync(request.SupabaseUserId, request);
         return Ok(new { id = user.Id, role = user.Role });
     }
 

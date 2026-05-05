@@ -1,4 +1,3 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -32,22 +31,26 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 // ------------------------------------------------------------
-// Authentication — Supabase JWT (HS256)
+// Authentication — Supabase JWT (ES256 via JWKS)
+// Newer Supabase projects sign tokens with ES256 (asymmetric).
+// We fetch signing keys from Supabase's JWKS endpoint at startup.
 // ------------------------------------------------------------
-var jwtSecret = builder.Configuration["SUPABASE_JWT_SECRET"]
-    ?? builder.Configuration["Supabase:JwtSecret"]
-    ?? throw new InvalidOperationException("SUPABASE_JWT_SECRET is not configured.");
+var supabaseUrl = builder.Configuration["SUPABASE_URL"]
+    ?? builder.Configuration["Supabase:Url"]
+    ?? throw new InvalidOperationException("SUPABASE_URL is not configured.");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.MetadataAddress = $"{supabaseUrl}/auth/v1/.well-known/openid-configuration";
+        options.RequireHttpsMetadata = true;
+        // Keep JWT claim names as-is (don't map sub → ClaimTypes.NameIdentifier, etc.)
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
             ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["SUPABASE_URL"]
-                          ?? builder.Configuration["Supabase:Url"],
+            ValidIssuer = $"{supabaseUrl}/auth/v1",
             ValidateAudience = true,
             ValidAudience = "authenticated",
             ValidateLifetime = true,

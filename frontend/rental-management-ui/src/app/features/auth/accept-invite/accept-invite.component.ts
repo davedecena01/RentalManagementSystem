@@ -72,7 +72,7 @@ export class AcceptInviteComponent implements OnInit {
     } catch (err: any) {
       this.toast.error(err.message ?? 'Something went wrong.');
     } finally {
-      this.loading = false;
+      setTimeout(() => this.loading = false);
     }
   }
 

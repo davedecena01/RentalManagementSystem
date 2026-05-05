@@ -29,7 +29,7 @@ export class ForgotPasswordComponent {
     } catch (err: any) {
       this.toast.error(err.message ?? 'Failed to send reset email.');
     } finally {
-      this.loading = false;
+      setTimeout(() => this.loading = false);
     }
   }
 

@@ -38,13 +38,17 @@ export class AuthService {
   }
 
   async signIn(email: string, password: string) {
-    const { error } = await this.supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
+    if (data.session) this.session.set(data.session);
   }
 
-  async signUp(email: string, password: string) {
-    const { error } = await this.supabase.auth.signUp({ email, password });
+  async signUp(email: string, password: string): Promise<string> {
+    const { data, error } = await this.supabase.auth.signUp({ email, password });
     if (error) throw error;
+    if (!data.user) throw new Error('Signup failed: no user returned.');
+    if (data.session) this.session.set(data.session);
+    return data.user.id;
   }
 
   async resetPassword(email: string) {

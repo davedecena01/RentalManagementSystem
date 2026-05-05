@@ -43,9 +43,9 @@ export class RegisterComponent {
     this.loading = true;
 
     try {
-      await this.auth.signUp(this.form.value.email, this.form.value.password);
-      // Mirror profile in backend after Supabase signup
+      const supabaseUserId = await this.auth.signUp(this.form.value.email, this.form.value.password);
       this.api.register({
+        supabaseUserId,
         firstName: this.form.value.firstName,
         lastName: this.form.value.lastName,
         email: this.form.value.email
@@ -62,7 +62,7 @@ export class RegisterComponent {
     } catch (err: any) {
       this.toast.error(err.message ?? 'Registration failed.');
     } finally {
-      this.loading = false;
+      setTimeout(() => this.loading = false);
     }
   }
 

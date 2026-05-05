@@ -17,7 +17,7 @@ export class ApiService {
     return this.http.patch<User>(`${this.base}/users/me`, payload);
   }
 
-  register(payload: { firstName: string; lastName: string; email: string }) {
+  register(payload: { supabaseUserId: string; firstName: string; lastName: string; email: string }) {
     return this.http.post<{ id: string; role: string }>(`${this.base}/auth/register`, payload);
   }
 

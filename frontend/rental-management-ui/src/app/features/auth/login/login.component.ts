@@ -45,7 +45,7 @@ export class LoginComponent {
     } catch (err: any) {
       this.toast.error(err.message ?? 'Login failed. Please check your credentials.');
     } finally {
-      this.loading = false;
+      setTimeout(() => this.loading = false);
     }
   }
 

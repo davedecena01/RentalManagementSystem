@@ -4,6 +4,9 @@ namespace RentalManagementApi.DTOs.Auth;
 
 public class RegisterRequest
 {
+    [Required]
+    public Guid SupabaseUserId { get; set; }
+
     [Required, MaxLength(100)]
     public string FirstName { get; set; } = string.Empty;
 
