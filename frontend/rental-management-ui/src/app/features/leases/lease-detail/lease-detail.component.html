@@ -1,0 +1,56 @@
+<a routerLink="/leases" class="back-link">← Back to Leases</a>
+
+@if (loading) {
+  <div class="loading">Loading…</div>
+} @else if (lease) {
+  <div class="page-header">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <h1>{{ lease.propertyName }}</h1>
+        <p class="page-subtitle">{{ lease.propertyAddress }}</p>
+      </div>
+      <span class="badge {{ statusClass(lease.status) }}" style="font-size:14px;padding:4px 14px">{{ lease.status }}</span>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="detail-item">
+      <label>Tenant</label>
+      <p>{{ lease.tenantName }}</p>
+    </div>
+    <div class="detail-item">
+      <label>Tenant Email</label>
+      <p>{{ lease.tenantEmail }}</p>
+    </div>
+    <div class="detail-item">
+      <label>Start Date</label>
+      <p>{{ formatDate(lease.startDate) }}</p>
+    </div>
+    <div class="detail-item">
+      <label>End Date</label>
+      <p>{{ formatDate(lease.endDate) }}</p>
+    </div>
+    <div class="detail-item">
+      <label>Monthly Rent</label>
+      <p>{{ formatMoney(lease.monthlyRent) }}</p>
+    </div>
+    <div class="detail-item">
+      <label>Deposit</label>
+      <p>{{ formatMoney(lease.depositAmount) }}</p>
+    </div>
+    <div class="detail-item">
+      <label>Advance</label>
+      <p>{{ formatMoney(lease.advanceAmount) }}</p>
+    </div>
+    @if (lease.tenantIdFileUrl) {
+      <div class="detail-item">
+        <label>Tenant ID</label>
+        <p><a [href]="lease.tenantIdFileUrl" target="_blank" style="color:var(--color-primary)">View document</a></p>
+      </div>
+    }
+  </div>
+
+  <div style="display:flex;gap:12px">
+    <a routerLink="/payments" class="btn btn-secondary">View Payments</a>
+  </div>
+}

@@ -1,0 +1,92 @@
+<div class="page-header">
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <h1>Properties</h1>
+      <p class="page-subtitle">Manage your rental properties</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreate()">+ Add Property</button>
+  </div>
+</div>
+
+@if (loading) {
+  <div class="loading">Loading properties…</div>
+} @else if (properties.length === 0) {
+  <div class="empty-state">
+    <p>No properties yet. Add your first property to get started.</p>
+    <button class="btn btn-primary" style="margin-top:16px" (click)="openCreate()">+ Add Property</button>
+  </div>
+} @else {
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Address</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of properties; track p.id) {
+          <tr>
+            <td><a [routerLink]="['/properties', p.id]" style="color:var(--color-primary);text-decoration:none;font-weight:500">{{ p.name }}</a></td>
+            <td>{{ p.address }}</td>
+            <td><span class="badge badge-blue">{{ p.type }}</span></td>
+            <td>
+              @if (p.isOccupied) {
+                <span class="badge badge-green">Occupied</span>
+              } @else {
+                <span class="badge badge-gray">Vacant</span>
+              }
+            </td>
+            <td>
+              <div class="table-actions">
+                <button class="btn btn-secondary btn-sm" (click)="openEdit(p)">Edit</button>
+                <button class="btn btn-danger btn-sm" (click)="delete(p)">Delete</button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (showForm) {
+  <div class="modal-backdrop" (click)="closeForm()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>{{ editTarget ? 'Edit Property' : 'Add Property' }}</h2>
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="form-group">
+          <label>Name *</label>
+          <input formControlName="name" placeholder="e.g. Sunset Apartments Unit 4A" />
+          @if (hasError('name')) { <span class="field-error">Name is required.</span> }
+        </div>
+        <div class="form-group">
+          <label>Address *</label>
+          <input formControlName="address" placeholder="Full address" />
+          @if (hasError('address')) { <span class="field-error">Address is required.</span> }
+        </div>
+        <div class="form-group">
+          <label>Type *</label>
+          <select formControlName="type">
+            @for (t of propertyTypes; track t) {
+              <option [value]="t">{{ t }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea formControlName="description" rows="3" placeholder="Optional notes…"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeForm()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="saving">
+            {{ saving ? 'Saving…' : (editTarget ? 'Update' : 'Create') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

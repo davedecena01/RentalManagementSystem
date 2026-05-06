@@ -89,10 +89,14 @@ builder.Services.AddCors(options =>
 // ------------------------------------------------------------
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<PropertyService>();
+builder.Services.AddScoped<LeaseService>();
+builder.Services.AddScoped<PaymentService>();
 
 // ------------------------------------------------------------
 // Controllers + Swagger
 // ------------------------------------------------------------
+builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

@@ -1,0 +1,104 @@
+<a routerLink="/properties" class="back-link">← Back to Properties</a>
+
+@if (loading) {
+  <div class="loading">Loading…</div>
+} @else if (property) {
+  <div class="page-header">
+    <h1>{{ property.name }}</h1>
+    <p class="page-subtitle">{{ property.address }}</p>
+  </div>
+
+  <div class="detail-grid" style="margin-bottom:32px">
+    <div class="detail-item">
+      <label>Type</label>
+      <p><span class="badge badge-blue">{{ property.type }}</span></p>
+    </div>
+    <div class="detail-item">
+      <label>Occupancy</label>
+      <p>
+        @if (property.isOccupied) {
+          <span class="badge badge-green">Occupied</span>
+        } @else {
+          <span class="badge badge-gray">Vacant</span>
+        }
+      </p>
+    </div>
+    @if (property.description) {
+      <div class="detail-item" style="grid-column:1/-1">
+        <label>Description</label>
+        <p>{{ property.description }}</p>
+      </div>
+    }
+  </div>
+
+  <!-- Inventory -->
+  <div class="table-card">
+    <div class="table-header">
+      <h2>Inventory</h2>
+      <button class="btn btn-primary btn-sm" (click)="openAddItem()">+ Add Item</button>
+    </div>
+
+    @if (inventory.length === 0) {
+      <div class="empty-state" style="padding:32px">No inventory items recorded.</div>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Description</th>
+            <th>Condition</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of inventory; track item.id) {
+            <tr>
+              <td>{{ item.name }}</td>
+              <td>{{ item.description ?? '—' }}</td>
+              <td><span class="badge {{ conditionClass(item.condition) }}">{{ item.condition }}</span></td>
+              <td>
+                <div class="table-actions">
+                  <button class="btn btn-secondary btn-sm" (click)="openEditItem(item)">Edit</button>
+                  <button class="btn btn-danger btn-sm" (click)="deleteItem(item)">Remove</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+}
+
+@if (showItemForm) {
+  <div class="modal-backdrop" (click)="closeItemForm()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>{{ editItem ? 'Edit Item' : 'Add Inventory Item' }}</h2>
+      <form [formGroup]="itemForm" (ngSubmit)="saveItem()">
+        <div class="form-group">
+          <label>Name *</label>
+          <input formControlName="name" placeholder="e.g. Air Conditioner" />
+          @if (hasError('name')) { <span class="field-error">Name is required.</span> }
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea formControlName="description" rows="2" placeholder="Optional details…"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Condition *</label>
+          <select formControlName="condition">
+            @for (c of conditions; track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeItemForm()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="savingItem">
+            {{ savingItem ? 'Saving…' : (editItem ? 'Update' : 'Add') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

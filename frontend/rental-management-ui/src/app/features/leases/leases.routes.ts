@@ -1,3 +1,16 @@
 import { Routes } from '@angular/router';
 
-export const leasesRoutes: Routes = [];
+export const leasesRoutes: Routes = [
+  {
+    path: '',
+    loadComponent: () => import('./leases-list/leases-list.component').then(m => m.LeasesListComponent)
+  },
+  {
+    path: 'new',
+    loadComponent: () => import('./lease-form/lease-form.component').then(m => m.LeaseFormComponent)
+  },
+  {
+    path: ':id',
+    loadComponent: () => import('./lease-detail/lease-detail.component').then(m => m.LeaseDetailComponent)
+  }
+];

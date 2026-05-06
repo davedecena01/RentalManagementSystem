@@ -1,0 +1,56 @@
+<div class="page-header">
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <h1>Leases</h1>
+      <p class="page-subtitle">Active and historical lease agreements</p>
+    </div>
+    @if (isLandlord()) {
+      <a routerLink="/leases/new" class="btn btn-primary">+ New Lease</a>
+    }
+  </div>
+</div>
+
+@if (loading) {
+  <div class="loading">Loading leases…</div>
+} @else if (leases.length === 0) {
+  <div class="empty-state">
+    <p>No leases found.</p>
+    @if (isLandlord()) {
+      <a routerLink="/leases/new" class="btn btn-primary" style="margin-top:16px;display:inline-flex">+ New Lease</a>
+    }
+  </div>
+} @else {
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Tenant</th>
+          <th>Period</th>
+          <th>Monthly Rent</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (l of leases; track l.id) {
+          <tr>
+            <td><strong>{{ l.propertyName }}</strong><br><small style="color:var(--color-text-muted)">{{ l.propertyAddress }}</small></td>
+            <td>{{ l.tenantName }}<br><small style="color:var(--color-text-muted)">{{ l.tenantEmail }}</small></td>
+            <td>{{ formatDate(l.startDate) }} — {{ formatDate(l.endDate) }}</td>
+            <td>{{ formatMoney(l.monthlyRent) }}</td>
+            <td><span class="badge {{ statusClass(l.status) }}">{{ l.status }}</span></td>
+            <td>
+              <div class="table-actions">
+                <a [routerLink]="['/leases', l.id]" class="btn btn-secondary btn-sm">View</a>
+                @if (isLandlord() && l.status === 'Active') {
+                  <button class="btn btn-danger btn-sm" (click)="terminate(l)">Terminate</button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

@@ -1,0 +1,92 @@
+<div class="page-header">
+  <h1>Payments</h1>
+  <p class="page-subtitle">Rent payment records</p>
+</div>
+
+<div class="filter-bar">
+  <select [(ngModel)]="statusFilter" (change)="load()" style="width:160px">
+    <option value="">All Statuses</option>
+    <option value="Unpaid">Unpaid</option>
+    <option value="Partial">Partial</option>
+    <option value="Paid">Paid</option>
+  </select>
+</div>
+
+@if (loading) {
+  <div class="loading">Loading payments…</div>
+} @else if (payments.length === 0) {
+  <div class="empty-state">No payments found.</div>
+} @else {
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Property</th>
+          @if (isLandlord()) { <th>Tenant</th> }
+          <th>Due Month</th>
+          <th>Amount Due</th>
+          <th>Amount Paid</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of payments; track p.id) {
+          <tr>
+            <td>{{ p.propertyName }}</td>
+            @if (isLandlord()) { <td>{{ p.tenantName }}</td> }
+            <td>{{ formatDate(p.dueDate) }}</td>
+            <td>{{ formatMoney(p.amountDue) }}</td>
+            <td>{{ formatMoney(p.amountPaid) }}</td>
+            <td><span class="badge {{ statusClass(p.status) }}">{{ p.status }}</span></td>
+            <td>
+              @if (p.status !== 'Paid') {
+                <div class="table-actions">
+                  @if (!isLandlord()) {
+                    <button class="btn btn-primary btn-sm" (click)="payWithStripe(p)">Pay Online</button>
+                  }
+                  <button class="btn btn-secondary btn-sm" (click)="openManualPay(p)">Manual Pay</button>
+                </div>
+              } @else {
+                @if (p.proofFileUrl) {
+                  <a [href]="p.proofFileUrl" target="_blank" class="btn btn-secondary btn-sm">Proof</a>
+                } @else {
+                  <span style="color:var(--color-text-muted);font-size:13px">Paid</span>
+                }
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (showManualPayModal && selectedPayment) {
+  <div class="modal-backdrop" (click)="closeManualPay()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Record Manual Payment</h2>
+      <p style="color:var(--color-text-muted);margin-bottom:20px">
+        {{ selectedPayment.propertyName }} — {{ formatDate(selectedPayment.dueDate) }}<br>
+        Balance: {{ formatMoney(selectedPayment.amountDue - selectedPayment.amountPaid) }}
+      </p>
+      <form [formGroup]="manualForm" (ngSubmit)="submitManualPay()">
+        <div class="form-group">
+          <label>Amount Paid (₱) *</label>
+          <input formControlName="amountPaid" type="number" min="0.01" step="0.01" />
+          @if (hasError('amountPaid')) { <span class="field-error">Amount must be greater than zero.</span> }
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea formControlName="notes" rows="2" placeholder="e.g. Cash payment via GCash…"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeManualPay()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="savingPay">
+            {{ savingPay ? 'Saving…' : 'Record Payment' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
