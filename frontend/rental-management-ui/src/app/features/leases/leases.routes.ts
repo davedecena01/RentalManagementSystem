@@ -10,6 +10,10 @@ export const leasesRoutes: Routes = [
     loadComponent: () => import('./lease-form/lease-form.component').then(m => m.LeaseFormComponent)
   },
   {
+    path: ':id/pdf-preview',
+    loadComponent: () => import('./lease-pdf-preview/lease-pdf-preview.component').then(m => m.LeasePdfPreviewComponent)
+  },
+  {
     path: ':id',
     loadComponent: () => import('./lease-detail/lease-detail.component').then(m => m.LeaseDetailComponent)
   }

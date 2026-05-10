@@ -1,0 +1,21 @@
+<a [routerLink]="['/leases', id]" class="back-link">← Back to Lease</a>
+
+<div class="page-header">
+  <h1>Lease Agreement</h1>
+  <p class="page-subtitle">Preview and download the lease agreement document</p>
+</div>
+
+@if (loading) {
+  <div class="loading">Generating PDF…</div>
+} @else if (error) {
+  <div class="empty-state" style="color:var(--color-danger)">{{ error }}</div>
+} @else {
+  <div style="margin-bottom:16px">
+    <button class="btn btn-primary" (click)="download()">Download PDF</button>
+  </div>
+  <iframe
+    [src]="safeUrl"
+    style="width:100%;height:80vh;border:1px solid #e5e7eb;border-radius:8px;display:block"
+    title="Lease Agreement PDF">
+  </iframe>
+}
