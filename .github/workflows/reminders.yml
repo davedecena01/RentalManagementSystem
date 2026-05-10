@@ -1,17 +1,23 @@
-name: Daily Rent Reminders
+name: Send Rent Reminders
 
 on:
   schedule:
-    - cron: '0 2 * * *'   # 02:00 UTC daily
-  workflow_dispatch:       # allow manual trigger for testing
+    - cron: '0 1 * * *'
+  workflow_dispatch:
 
 jobs:
-  send-reminders:
-    name: Trigger reminder endpoint
+  trigger-reminders:
     runs-on: ubuntu-latest
     steps:
-      - name: POST /api/reminders/trigger
+      - name: Trigger reminder job
         run: |
-          curl -f -X POST "${{ secrets.API_URL }}/api/reminders/trigger" \
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "${{ secrets.API_URL }}/api/reminders/trigger" \
             -H "X-Internal-Key: ${{ secrets.INTERNAL_API_KEY }}" \
-            -H "Content-Type: application/json"
+            -H "Content-Type: application/json")
+          echo "Response status: $response"
+          if [ "$response" -lt 200 ] || [ "$response" -ge 300 ]; then
+            echo "Reminder trigger failed with status $response"
+            exit 1
+          fi
+          echo "Reminders triggered successfully"

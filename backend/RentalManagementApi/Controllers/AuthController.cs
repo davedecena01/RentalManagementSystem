@@ -32,6 +32,16 @@ public class AuthController(AuthService authService) : ControllerBase
         return Ok(new { message = "Invite created.", token = invite.Token, expiresAt = invite.ExpiresAt });
     }
 
+    [HttpGet("invite/{token}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetInvite(string token)
+    {
+        var invite = await authService.GetInviteAsync(token);
+        if (invite is null)
+            return NotFound(new ApiError("Invite not found or already used.", "INVALID_INVITE_TOKEN"));
+        return Ok(new { email = invite.Email });
+    }
+
     [HttpPost("accept-invite")]
     [AllowAnonymous]
     public async Task<IActionResult> AcceptInvite([FromBody] AcceptInviteRequest request)

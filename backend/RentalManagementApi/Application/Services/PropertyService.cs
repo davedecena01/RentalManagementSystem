@@ -60,14 +60,17 @@ public class PropertyService(AppDbContext db)
         return ToDto(property, occupied);
     }
 
-    public async Task<bool> DeleteAsync(Guid id, Guid landlordId)
+    public async Task<(bool Deleted, string? Error)> DeleteAsync(Guid id, Guid landlordId)
     {
         var property = await db.Properties.FirstOrDefaultAsync(p => p.Id == id && p.LandlordId == landlordId);
-        if (property is null) return false;
+        if (property is null) return (false, "NOT_FOUND");
+
+        var hasActiveLease = await db.Leases.AnyAsync(l => l.PropertyId == id && l.Status == LeaseStatus.Active);
+        if (hasActiveLease) return (false, "ACTIVE_LEASE");
 
         db.Properties.Remove(property);
         await db.SaveChangesAsync();
-        return true;
+        return (true, null);
     }
 
     // --- Inventory ---

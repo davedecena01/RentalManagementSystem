@@ -26,6 +26,7 @@ export class AcceptInviteComponent implements OnInit {
     private router: Router
   ) {
     this.form = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
       firstName: ['', [Validators.required, Validators.maxLength(100)]],
       lastName: ['', [Validators.required, Validators.maxLength(100)]],
       password: ['', [Validators.required, Validators.minLength(8)]],
@@ -52,8 +53,7 @@ export class AcceptInviteComponent implements OnInit {
     this.loading = true;
 
     try {
-      // Create Supabase account then mirror in backend
-      await this.auth.signUp('', this.form.value.password); // email comes from invite
+      await this.auth.signUp(this.form.value.email, this.form.value.password);
       const session = this.auth.session();
       if (!session) throw new Error('Session not available after signup.');
 
@@ -64,7 +64,7 @@ export class AcceptInviteComponent implements OnInit {
         supabaseUserId: session.user.id
       }).subscribe({
         next: () => {
-          this.toast.success('Welcome! Your account is ready.');
+          this.toast.success('Welcome! Your tenant account is ready.');
           this.router.navigate(['/dashboard']);
         },
         error: (err) => this.toast.error(err.error?.error ?? 'Failed to accept invite.')
@@ -76,6 +76,7 @@ export class AcceptInviteComponent implements OnInit {
     }
   }
 
+  get email() { return this.form.get('email')!; }
   get firstName() { return this.form.get('firstName')!; }
   get lastName() { return this.form.get('lastName')!; }
   get password() { return this.form.get('password')!; }

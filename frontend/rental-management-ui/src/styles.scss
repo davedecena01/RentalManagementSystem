@@ -122,9 +122,12 @@ input, select, textarea {
 .page-subtitle { color: var(--color-text-muted); margin-top: 2px; }
 .metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
 .metric-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+.metric-card--alert { border-color: #ef4444; background: #fef2f2; }
 .metric-label { font-size: 12px; color: var(--color-text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
 .metric-value { font-size: 28px; font-weight: 700; }
 .empty-state { text-align: center; color: var(--color-text-muted); padding: 40px 0; }
+.charts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; margin-bottom: 32px; }
+.chart-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 20px; h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; } }
 
 /* Tables */
 .table-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; }

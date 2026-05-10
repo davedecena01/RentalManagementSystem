@@ -1,20 +1,28 @@
 <div class="auth-container">
   <div class="auth-card">
     <h1>Accept invitation</h1>
-    <p class="auth-subtitle">Set up your tenant account.</p>
+    <p class="auth-subtitle">Enter your invite email and set up your tenant account.</p>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="email">Email (from your invite)</label>
+        <input id="email" type="email" formControlName="email" placeholder="you@example.com" autocomplete="email" />
+        @if (email.invalid && email.touched) {
+          <span class="field-error">Valid email required.</span>
+        }
+      </div>
+
       <div class="form-row">
         <div class="form-group">
           <label for="firstName">First name</label>
-          <input id="firstName" type="text" formControlName="firstName" />
+          <input id="firstName" type="text" formControlName="firstName" autocomplete="given-name" />
           @if (firstName.invalid && firstName.touched) {
             <span class="field-error">Required.</span>
           }
         </div>
         <div class="form-group">
           <label for="lastName">Last name</label>
-          <input id="lastName" type="text" formControlName="lastName" />
+          <input id="lastName" type="text" formControlName="lastName" autocomplete="family-name" />
           @if (lastName.invalid && lastName.touched) {
             <span class="field-error">Required.</span>
           }
@@ -23,7 +31,7 @@
 
       <div class="form-group">
         <label for="password">Password</label>
-        <input id="password" type="password" formControlName="password" placeholder="Min. 8 characters" />
+        <input id="password" type="password" formControlName="password" placeholder="Min. 8 characters" autocomplete="new-password" />
         @if (password.invalid && password.touched) {
           <span class="field-error">Minimum 8 characters.</span>
         }
@@ -31,7 +39,7 @@
 
       <div class="form-group">
         <label for="confirmPassword">Confirm password</label>
-        <input id="confirmPassword" type="password" formControlName="confirmPassword" />
+        <input id="confirmPassword" type="password" formControlName="confirmPassword" autocomplete="new-password" />
         @if (form.hasError('passwordMismatch') && confirmPassword.touched) {
           <span class="field-error">Passwords do not match.</span>
         }

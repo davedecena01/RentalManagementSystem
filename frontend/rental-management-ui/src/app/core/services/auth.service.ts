@@ -10,10 +10,13 @@ export class AuthService {
   currentUser = signal<User | null>(null);
   session = signal<Session | null>(null);
 
+  /** Resolves once the initial session has been loaded from storage. */
+  readonly sessionReady: Promise<void>;
+
   constructor(private router: Router) {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
 
-    this.supabase.auth.getSession().then(({ data }) => {
+    this.sessionReady = this.supabase.auth.getSession().then(({ data }) => {
       this.session.set(data.session);
     });
 

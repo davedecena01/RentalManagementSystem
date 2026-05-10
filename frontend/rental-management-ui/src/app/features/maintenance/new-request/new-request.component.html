@@ -1,0 +1,58 @@
+<div class="page-container">
+  <a routerLink="/maintenance" class="back-link">← Back to Maintenance</a>
+
+  <div class="form-card">
+    <div class="form-card-header">
+      <h1>Submit Maintenance Request</h1>
+      <p class="page-subtitle">Report an issue with your rental property</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="propertyId">Property *</label>
+        <select id="propertyId" formControlName="propertyId">
+          <option value="">— Select property —</option>
+          @for (p of properties; track p.id) {
+            <option [value]="p.id">{{ p.name }}</option>
+          }
+        </select>
+        @if (propertyId.invalid && propertyId.touched) {
+          <span class="field-error">Please select a property.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="title">Title *</label>
+        <input id="title" type="text" formControlName="title" placeholder="e.g. Leaking kitchen faucet" />
+        @if (title.invalid && title.touched) {
+          <span class="field-error">Title is required (max 200 characters).</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="priority">Priority *</label>
+        <select id="priority" formControlName="priority">
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description *</label>
+        <textarea id="description" formControlName="description" rows="4"
+          placeholder="Describe the issue in detail…"></textarea>
+        @if (description.invalid && description.touched) {
+          <span class="field-error">Description is required (max 2000 characters).</span>
+        }
+      </div>
+
+      <div class="form-actions">
+        <a routerLink="/maintenance" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary" [disabled]="loading">
+          {{ loading ? 'Submitting…' : 'Submit Request' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

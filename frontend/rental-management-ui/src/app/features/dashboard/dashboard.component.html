@@ -1,37 +1,78 @@
 <div class="page-header">
-  <h1>Dashboard</h1>
-  @if (user()) {
-    <p class="page-subtitle">Welcome back, {{ user()!.firstName }}.</p>
+  <div>
+    <h1>Dashboard</h1>
+    @if (user()) {
+      <p class="page-subtitle">Welcome back, {{ user()!.firstName }}.</p>
+    }
+  </div>
+</div>
+
+@if (loading) {
+  <div class="loading">Loading dashboard…</div>
+} @else if (data) {
+  @if (isLandlord()) {
+    <div class="metric-grid">
+      <div class="metric-card">
+        <span class="metric-label">Properties</span>
+        <span class="metric-value">{{ data.totalProperties }}</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Occupied</span>
+        <span class="metric-value">{{ data.occupiedProperties }}</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Vacant</span>
+        <span class="metric-value">{{ data.vacantProperties }}</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Monthly Rent</span>
+        <span class="metric-value" style="font-size:1.2rem">{{ fmt(data.totalMonthlyRent) }}</span>
+      </div>
+      <div class="metric-card" [class.metric-card--alert]="data.totalUnpaidRent > 0">
+        <span class="metric-label">Unpaid Rent</span>
+        <span class="metric-value" style="font-size:1.2rem">{{ fmt(data.totalUnpaidRent) }}</span>
+      </div>
+      <div class="metric-card" [class.metric-card--alert]="data.openMaintenanceCount > 0">
+        <span class="metric-label">Open Maintenance</span>
+        <span class="metric-value">{{ data.openMaintenanceCount }}</span>
+      </div>
+    </div>
+  } @else {
+    <div class="metric-grid">
+      <div class="metric-card">
+        <span class="metric-label">Monthly Rent</span>
+        <span class="metric-value" style="font-size:1.2rem">{{ fmt(data.totalMonthlyRent) }}</span>
+      </div>
+      <div class="metric-card" [class.metric-card--alert]="data.totalUnpaidRent > 0">
+        <span class="metric-label">Amount Due</span>
+        <span class="metric-value" style="font-size:1.2rem">{{ fmt(data.totalUnpaidRent) }}</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Paid Months</span>
+        <span class="metric-value">{{ data.paymentBreakdown.paid }}</span>
+      </div>
+    </div>
   }
-</div>
 
-<div class="metric-grid">
-  <div class="metric-card">
-    <span class="metric-label">Properties</span>
-    <span class="metric-value">—</span>
+  <div class="charts-grid">
+    @if (data.monthlyIncome.length > 0) {
+      <div class="chart-card">
+        <h3>Monthly Income</h3>
+        <canvas #incomeChart></canvas>
+      </div>
+    }
+    @if (data.paymentBreakdown.paid + data.paymentBreakdown.partial + data.paymentBreakdown.unpaid > 0) {
+      <div class="chart-card">
+        <h3>Payment Status</h3>
+        <canvas #breakdownChart></canvas>
+      </div>
+    }
   </div>
-  <div class="metric-card">
-    <span class="metric-label">Occupied</span>
-    <span class="metric-value">—</span>
-  </div>
-  <div class="metric-card">
-    <span class="metric-label">Vacant</span>
-    <span class="metric-value">—</span>
-  </div>
-  <div class="metric-card">
-    <span class="metric-label">Monthly Rent</span>
-    <span class="metric-value">—</span>
-  </div>
-  <div class="metric-card">
-    <span class="metric-label">Unpaid Rent</span>
-    <span class="metric-value">—</span>
-  </div>
-  <div class="metric-card">
-    <span class="metric-label">Open Maintenance</span>
-    <span class="metric-value">—</span>
-  </div>
-</div>
 
-<div class="empty-state">
-  <p>Your dashboard will populate once you add properties and create leases.</p>
-</div>
+  @if (isLandlord() && data.totalProperties === 0) {
+    <div class="empty-state">
+      No properties yet.
+      <a routerLink="/properties" class="btn btn-primary" style="margin-top:16px;display:inline-block">Add Your First Property</a>
+    </div>
+  }
+}

@@ -28,6 +28,9 @@ public class AuthService(AppDbContext db, ILogger<AuthService> logger)
         return user;
     }
 
+    public async Task<TenantInvite?> GetInviteAsync(string token) =>
+        await db.TenantInvites.FirstOrDefaultAsync(i => i.Token == token && !i.IsAccepted && i.ExpiresAt > DateTime.UtcNow);
+
     public async Task<TenantInvite> InviteTenantAsync(Guid landlordId, string email)
     {
         var token = Convert.ToBase64String(Guid.NewGuid().ToByteArray())

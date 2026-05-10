@@ -12,6 +12,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<PropertyInventory> PropertyInventory => Set<PropertyInventory>();
     public DbSet<Lease> Leases => Set<Lease>();
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<MaintenanceRequest> MaintenanceRequests => Set<MaintenanceRequest>();
+    public DbSet<ReminderSetting> ReminderSettings => Set<ReminderSetting>();
+    public DbSet<ReminderLog> ReminderLogs => Set<ReminderLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -107,6 +110,47 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
              .WithMany(l => l.Payments)
              .HasForeignKey(p => p.LeaseId)
              .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ReminderSetting>(e =>
+        {
+            e.HasKey(r => r.Id);
+            e.HasIndex(r => r.LeaseId).IsUnique();
+            e.HasOne(r => r.Lease)
+             .WithOne()
+             .HasForeignKey<ReminderSetting>(r => r.LeaseId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ReminderLog>(e =>
+        {
+            e.HasKey(r => r.Id);
+            e.HasIndex(r => new { r.LeaseId, r.DueDate, r.ReminderType, r.SentDate }).IsUnique();
+            e.Property(r => r.ReminderType).IsRequired().HasMaxLength(10);
+            e.HasOne(r => r.Lease)
+             .WithMany()
+             .HasForeignKey(r => r.LeaseId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<MaintenanceRequest>(e =>
+        {
+            e.HasKey(m => m.Id);
+            e.Property(m => m.Title).IsRequired().HasMaxLength(200);
+            e.Property(m => m.Description).IsRequired().HasMaxLength(2000);
+            e.Property(m => m.Priority).HasConversion<string>();
+            e.Property(m => m.Status).HasConversion<string>();
+            e.HasIndex(m => m.PropertyId);
+            e.HasIndex(m => m.TenantId);
+            e.HasIndex(m => m.Status);
+            e.HasOne(m => m.Property)
+             .WithMany()
+             .HasForeignKey(m => m.PropertyId)
+             .OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(m => m.Tenant)
+             .WithMany()
+             .HasForeignKey(m => m.TenantId)
+             .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

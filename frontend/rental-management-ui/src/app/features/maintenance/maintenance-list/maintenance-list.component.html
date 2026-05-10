@@ -1,0 +1,86 @@
+<div class="page-header">
+  <div>
+    <h1>Maintenance</h1>
+    <p class="page-subtitle">{{ isLandlord() ? 'All maintenance requests for your properties' : 'Your submitted requests' }}</p>
+  </div>
+  @if (!isLandlord()) {
+    <a routerLink="/maintenance/new" class="btn btn-primary">+ New Request</a>
+  }
+</div>
+
+@if (loading) {
+  <div class="loading">Loading requests…</div>
+} @else if (requests.length === 0) {
+  <div class="empty-state">
+    @if (isLandlord()) {
+      No maintenance requests yet.
+    } @else {
+      You haven't submitted any maintenance requests yet.
+      <a routerLink="/maintenance/new" class="btn btn-primary" style="margin-top:16px;display:inline-block">Submit a Request</a>
+    }
+  </div>
+} @else {
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Property</th>
+          @if (isLandlord()) { <th>Tenant</th> }
+          <th>Title</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Submitted</th>
+          @if (isLandlord()) { <th>Actions</th> }
+        </tr>
+      </thead>
+      <tbody>
+        @for (r of requests; track r.id) {
+          <tr>
+            <td>{{ r.propertyName }}</td>
+            @if (isLandlord()) { <td>{{ r.tenantName }}</td> }
+            <td>
+              <strong>{{ r.title }}</strong>
+              <div style="color:var(--color-text-muted);font-size:12px;margin-top:2px">{{ r.description }}</div>
+            </td>
+            <td><span class="badge {{ priorityClass(r.priority) }}">{{ r.priority }}</span></td>
+            <td><span class="badge {{ statusClass(r.status) }}">{{ statusLabel(r.status) }}</span></td>
+            <td>{{ r.createdAt | date:'MMM d, y' }}</td>
+            @if (isLandlord()) {
+              <td>
+                @if (r.status !== 'Resolved') {
+                  <button class="btn btn-primary btn-sm" (click)="openResolve(r)">Resolve</button>
+                } @else {
+                  <span style="color:var(--color-text-muted);font-size:13px">Resolved</span>
+                }
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (showResolveModal && selectedRequest) {
+  <div class="modal-backdrop" (click)="closeResolve()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Resolve Request</h2>
+      <p style="color:var(--color-text-muted);margin-bottom:20px">
+        <strong>{{ selectedRequest.title }}</strong><br>
+        {{ selectedRequest.propertyName }} — {{ selectedRequest.tenantName }}
+      </p>
+      <form [formGroup]="resolveForm" (ngSubmit)="submitResolve()">
+        <div class="form-group">
+          <label>Resolution Notes</label>
+          <textarea formControlName="resolutionNotes" rows="3" placeholder="Describe what was done to resolve this issue…"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeResolve()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="savingResolve">
+            {{ savingResolve ? 'Saving…' : 'Mark Resolved' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

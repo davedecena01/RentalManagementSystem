@@ -68,10 +68,13 @@ public class PropertiesController(PropertyService propertyService) : ControllerB
         var landlordId = GetCurrentUserId();
         if (landlordId is null) return Unauthorized(new ApiError("Invalid token.", "UNAUTHORIZED"));
 
-        var deleted = await propertyService.DeleteAsync(id, landlordId.Value);
-        if (!deleted) return NotFound(new ApiError("Property not found.", "PROPERTY_NOT_FOUND"));
-
-        return NoContent();
+        var (deleted, error) = await propertyService.DeleteAsync(id, landlordId.Value);
+        return error switch
+        {
+            "NOT_FOUND" => NotFound(new ApiError("Property not found.", "PROPERTY_NOT_FOUND")),
+            "ACTIVE_LEASE" => Conflict(new ApiError("Cannot delete a property with an active lease.", "ACTIVE_LEASE")),
+            _ => NoContent()
+        };
     }
 
     // --- Inventory ---

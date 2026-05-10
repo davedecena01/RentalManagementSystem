@@ -114,7 +114,14 @@
       "Bash(git checkout *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "mcp__plugin_playwright_playwright__browser_tabs"
+      "mcp__plugin_playwright_playwright__browser_tabs",
+      "PowerShell(Get-NetTCPConnection -LocalPort 4200,5062 -State Listen -ErrorAction SilentlyContinue)",
+      "mcp__plugin_playwright_playwright__browser_network_request",
+      "mcp__plugin_playwright_playwright__browser_close",
+      "mcp__plugin_playwright_playwright__browser_select_option",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:5000/healthz\" -UseBasicParsing -ErrorAction SilentlyContinue)",
+      "PowerShell([System.Environment]::GetEnvironmentVariable\\(\"ConnectionStrings__DefaultConnection\"\\); [System.Environment]::GetEnvironmentVariable\\(\"Supabase__Url\"\\); [System.Environment]::GetEnvironmentVariable\\(\"ASPNETCORE_URLS\"\\))",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:8080/healthz\" -UseBasicParsing -ErrorAction SilentlyContinue | Select-Object StatusCode, @{N='Body';E={$_.Content}})"
     ],
     "deny": [],
     "ask": [
