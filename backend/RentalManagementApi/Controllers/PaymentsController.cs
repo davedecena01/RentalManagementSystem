@@ -65,6 +65,10 @@ public class PaymentsController(
         {
             return Forbid();
         }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ApiError(ex.Message, "RECEIPT_NOT_AVAILABLE"));
+        }
     }
 
     [HttpPost("{id:guid}/manual-pay")]

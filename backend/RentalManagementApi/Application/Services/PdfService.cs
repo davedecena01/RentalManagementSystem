@@ -3,6 +3,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using RentalManagementApi.Data;
+using RentalManagementApi.Entities;
 
 namespace RentalManagementApi.Application.Services;
 
@@ -132,6 +133,9 @@ public class PdfService(AppDbContext db)
         };
 
         if (!hasAccess) throw new UnauthorizedAccessException("Access denied.");
+
+        if (payment.Status == PaymentStatus.Unpaid)
+            throw new InvalidOperationException("No receipt available for unpaid payments.");
 
         var receiptRef = payment.Id.ToString().Replace("-", "")[^8..].ToUpper();
         var balance = payment.AmountDue - payment.AmountPaid;
