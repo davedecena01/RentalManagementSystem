@@ -15,6 +15,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<MaintenanceRequest> MaintenanceRequests => Set<MaintenanceRequest>();
     public DbSet<ReminderSetting> ReminderSettings => Set<ReminderSetting>();
     public DbSet<ReminderLog> ReminderLogs => Set<ReminderLog>();
+    public DbSet<ProvisionTemplate> ProvisionTemplates => Set<ProvisionTemplate>();
+    public DbSet<LeaseProvision> LeaseProvisions => Set<LeaseProvision>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -151,6 +153,30 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
              .WithMany()
              .HasForeignKey(m => m.TenantId)
              .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProvisionTemplate>(e =>
+        {
+            e.HasKey(t => t.Id);
+            e.Property(t => t.Title).IsRequired().HasMaxLength(200);
+            e.Property(t => t.Body).IsRequired().HasMaxLength(4000);
+            e.HasIndex(t => t.LandlordId);
+            e.HasOne(t => t.Landlord)
+             .WithMany()
+             .HasForeignKey(t => t.LandlordId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<LeaseProvision>(e =>
+        {
+            e.HasKey(p => p.Id);
+            e.Property(p => p.Title).IsRequired().HasMaxLength(200);
+            e.Property(p => p.Body).IsRequired().HasMaxLength(4000);
+            e.HasIndex(p => p.LeaseId);
+            e.HasOne(p => p.Lease)
+             .WithMany(l => l.Provisions)
+             .HasForeignKey(p => p.LeaseId)
+             .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
