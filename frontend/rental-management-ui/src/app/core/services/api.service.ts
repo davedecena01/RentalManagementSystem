@@ -8,6 +8,7 @@ import { Lease } from '../models/lease.model';
 import { Payment } from '../models/payment.model';
 import { MaintenanceRequest } from '../models/maintenance.model';
 import { DashboardData } from '../models/dashboard.model';
+import { ProvisionTemplate, LeaseProvision, LeaseProvisionPayload } from '../models/provision.model';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -174,5 +175,37 @@ export class ApiService {
   getUploadUrl(bucket: string, path: string) {
     const params = new HttpParams().set('bucket', bucket).set('path', path);
     return this.http.get<{ uploadUrl: string }>(`${this.base}/storage/upload-url`, { params });
+  }
+
+  // --- Provision Templates ---
+
+  getProvisionTemplates() {
+    return this.http.get<ProvisionTemplate[]>(`${this.base}/provision-templates`);
+  }
+
+  createProvisionTemplate(payload: { title: string; body: string }) {
+    return this.http.post<ProvisionTemplate>(`${this.base}/provision-templates`, payload);
+  }
+
+  updateProvisionTemplate(id: string, payload: { title: string; body: string }) {
+    return this.http.put<ProvisionTemplate>(`${this.base}/provision-templates/${id}`, payload);
+  }
+
+  deleteProvisionTemplate(id: string) {
+    return this.http.delete<void>(`${this.base}/provision-templates/${id}`);
+  }
+
+  // --- Lease Provisions ---
+
+  getLeaseProvisions(leaseId: string) {
+    return this.http.get<LeaseProvision[]>(`${this.base}/leases/${leaseId}/provisions`);
+  }
+
+  setLeaseProvisions(leaseId: string, provisions: LeaseProvisionPayload[]) {
+    return this.http.put<LeaseProvision[]>(`${this.base}/leases/${leaseId}/provisions`, provisions);
+  }
+
+  deleteLeaseProvision(leaseId: string, provisionId: string) {
+    return this.http.delete<void>(`${this.base}/leases/${leaseId}/provisions/${provisionId}`);
   }
 }
