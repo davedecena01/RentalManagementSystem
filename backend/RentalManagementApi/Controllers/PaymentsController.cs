@@ -13,6 +13,7 @@ namespace RentalManagementApi.Controllers;
 [Authorize]
 public class PaymentsController(
     PaymentService paymentService,
+    PdfService pdfService,
     IOptions<StripeOptions> stripeOptions,
     IOptions<AppOptions> appOptions) : ControllerBase
 {
@@ -41,6 +42,29 @@ public class PaymentsController(
         if (payment is null) return NotFound(new ApiError("Payment not found.", "PAYMENT_NOT_FOUND"));
 
         return Ok(payment);
+    }
+
+    [HttpGet("{id:guid}/receipt")]
+    public async Task<IActionResult> GetReceipt(Guid id)
+    {
+        var userId = GetCurrentUserId();
+        var role = GetCurrentUserRole();
+        if (userId is null) return Unauthorized(new ApiError("Invalid token.", "UNAUTHORIZED"));
+
+        try
+        {
+            var bytes = await pdfService.GeneratePaymentReceiptPdfAsync(id, userId.Value, role);
+            Response.Headers.Append("Content-Disposition", "inline; filename=\"payment-receipt.pdf\"");
+            return File(bytes, "application/pdf");
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new ApiError("Payment not found.", "PAYMENT_NOT_FOUND"));
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
     }
 
     [HttpPost("{id:guid}/manual-pay")]

@@ -9,7 +9,7 @@ namespace RentalManagementApi.Controllers;
 [ApiController]
 [Route("api/leases")]
 [Authorize]
-public class LeasesController(LeaseService leaseService) : ControllerBase
+public class LeasesController(LeaseService leaseService, PdfService pdfService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAll()
@@ -38,6 +38,29 @@ public class LeasesController(LeaseService leaseService) : ControllerBase
 
         if (lease is null) return NotFound(new ApiError("Lease not found.", "LEASE_NOT_FOUND"));
         return Ok(lease);
+    }
+
+    [HttpGet("{id:guid}/pdf")]
+    public async Task<IActionResult> GetPdf(Guid id)
+    {
+        var userId = GetCurrentUserId();
+        var role = GetCurrentUserRole();
+        if (userId is null) return Unauthorized(new ApiError("Invalid token.", "UNAUTHORIZED"));
+
+        try
+        {
+            var bytes = await pdfService.GenerateLeasePdfAsync(id, userId.Value, role);
+            Response.Headers.Append("Content-Disposition", "inline; filename=\"lease-agreement.pdf\"");
+            return File(bytes, "application/pdf");
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new ApiError("Lease not found.", "LEASE_NOT_FOUND"));
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
     }
 
     [HttpPost]
