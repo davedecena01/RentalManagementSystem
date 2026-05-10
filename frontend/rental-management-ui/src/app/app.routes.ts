@@ -22,6 +22,12 @@ export const routes: Routes = [
   },
 
   {
+    path: 'leases/:id/pdf-preview',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/leases/lease-pdf-preview/lease-pdf-preview.component').then(m => m.LeasePdfPreviewComponent)
+  },
+
+  {
     path: 'leases',
     canActivate: [landlordGuard],
     loadChildren: () => import('./features/leases/leases.routes').then(m => m.leasesRoutes)
