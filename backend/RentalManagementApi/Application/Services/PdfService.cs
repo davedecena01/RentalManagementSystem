@@ -14,6 +14,7 @@ public class PdfService(AppDbContext db)
         var lease = await db.Leases
             .Include(l => l.Property).ThenInclude(p => p.Landlord)
             .Include(l => l.Tenant)
+            .Include(l => l.Provisions.OrderBy(p => p.SortOrder))
             .FirstOrDefaultAsync(l => l.Id == leaseId);
 
         if (lease is null) throw new KeyNotFoundException("Lease not found.");
@@ -83,6 +84,22 @@ public class PdfService(AppDbContext db)
                     });
 
                     col.Item().LineHorizontal(0.5f).LineColor(Colors.Grey.Lighten2);
+
+                    if (lease.Provisions.Any())
+                    {
+                        col.Item().Text("Special Provisions").Bold().FontSize(13).FontColor(Colors.Grey.Darken2);
+
+                        foreach (var provision in lease.Provisions)
+                        {
+                            col.Item().Column(inner =>
+                            {
+                                inner.Item().PaddingBottom(2).Text(provision.Title).SemiBold();
+                                inner.Item().Text(provision.Body).FontSize(10).FontColor(Colors.Grey.Darken1);
+                            });
+                        }
+
+                        col.Item().LineHorizontal(0.5f).LineColor(Colors.Grey.Lighten2);
+                    }
 
                     col.Item().Text("Signatures").Bold().FontSize(13).FontColor(Colors.Grey.Darken2);
                     col.Item().PaddingTop(8).Row(row =>
