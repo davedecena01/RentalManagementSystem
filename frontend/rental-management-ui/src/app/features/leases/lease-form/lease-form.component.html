@@ -53,7 +53,49 @@
         </div>
       </div>
 
-      <div class="modal-actions">
+      <!-- Special Provisions -->
+      <div style="border-top:1px solid var(--color-border);padding-top:20px;margin-top:8px">
+        <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">Special Provisions (optional)</h3>
+
+        @if (templates.length > 0) {
+          <p style="font-size:13px;color:var(--color-text-muted);margin-bottom:8px">Select from your clause library:</p>
+          @for (t of templates; track t.id) {
+            <label style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;cursor:pointer">
+              <input type="checkbox"
+                     [checked]="selectedTemplateIds.has(t.id)"
+                     (change)="toggleTemplate(t.id)"
+                     style="margin-top:3px;width:16px;height:16px" />
+              <span>
+                <strong>{{ t.title }}</strong>
+                <span style="display:block;font-size:12px;color:var(--color-text-muted)">{{ t.body }}</span>
+              </span>
+            </label>
+          }
+        }
+
+        @if (oneOffProvisions.length > 0) {
+          <p style="font-size:13px;color:var(--color-text-muted);margin:12px 0 8px">One-off provisions:</p>
+          @for (p of oneOffProvisions; track $index) {
+            <div style="background:var(--color-bg-subtle,#f8f9fa);border-radius:6px;padding:12px;margin-bottom:8px">
+              <div class="form-group" style="margin-bottom:8px">
+                <input [(ngModel)]="p.title" [ngModelOptions]="{standalone: true}"
+                       type="text" placeholder="Provision title" />
+              </div>
+              <div class="form-group" style="margin-bottom:8px">
+                <textarea [(ngModel)]="p.body" [ngModelOptions]="{standalone: true}"
+                          rows="2" placeholder="Clause text…" style="width:100%;resize:vertical"></textarea>
+              </div>
+              <button type="button" class="btn btn-danger" style="padding:2px 10px;font-size:12px"
+                      (click)="removeOneOff($index)">Remove</button>
+            </div>
+          }
+        }
+
+        <button type="button" class="btn btn-secondary" style="font-size:13px;margin-top:4px"
+                (click)="addOneOff()">+ Add one-off provision</button>
+      </div>
+
+      <div class="modal-actions" style="margin-top:20px">
         <a routerLink="/leases" class="btn btn-secondary">Cancel</a>
         <button type="submit" class="btn btn-primary" [disabled]="saving">
           {{ saving ? 'Creating…' : 'Create Lease' }}

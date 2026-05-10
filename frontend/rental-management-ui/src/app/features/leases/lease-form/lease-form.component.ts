@@ -1,15 +1,16 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Property } from '../../../core/models/property.model';
+import { ProvisionTemplate } from '../../../core/models/provision.model';
 
 @Component({
   selector: 'app-lease-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
   templateUrl: './lease-form.component.html'
 })
 export class LeaseFormComponent implements OnInit {
@@ -19,6 +20,9 @@ export class LeaseFormComponent implements OnInit {
   private fb = inject(FormBuilder);
 
   properties: Property[] = [];
+  templates: ProvisionTemplate[] = [];
+  selectedTemplateIds = new Set<string>();
+  oneOffProvisions: { title: string; body: string }[] = [];
   saving = false;
 
   form: FormGroup = this.fb.group({
@@ -36,6 +40,26 @@ export class LeaseFormComponent implements OnInit {
       next: (props) => this.properties = props.filter(p => !p.isOccupied),
       error: () => this.toast.error('Failed to load properties.')
     });
+    this.api.getProvisionTemplates().subscribe({
+      next: (t) => this.templates = t,
+      error: () => {}
+    });
+  }
+
+  toggleTemplate(id: string) {
+    if (this.selectedTemplateIds.has(id)) {
+      this.selectedTemplateIds.delete(id);
+    } else {
+      this.selectedTemplateIds.add(id);
+    }
+  }
+
+  addOneOff() {
+    this.oneOffProvisions.push({ title: '', body: '' });
+  }
+
+  removeOneOff(index: number) {
+    this.oneOffProvisions.splice(index, 1);
   }
 
   submit() {
@@ -53,8 +77,22 @@ export class LeaseFormComponent implements OnInit {
       advanceAmount: +v.advanceAmount
     }).subscribe({
       next: (lease) => {
-        this.toast.success('Lease created and payments scheduled.');
-        this.router.navigate(['/leases', lease.id]);
+        const provisions = this.buildProvisionPayloads();
+        if (provisions.length === 0) {
+          this.toast.success('Lease created and payments scheduled.');
+          this.router.navigate(['/leases', lease.id]);
+          return;
+        }
+        this.api.setLeaseProvisions(lease.id, provisions).subscribe({
+          next: () => {
+            this.toast.success('Lease created with special provisions.');
+            this.router.navigate(['/leases', lease.id]);
+          },
+          error: () => {
+            this.toast.success('Lease created. Failed to save provisions — add them from the lease detail page.');
+            this.router.navigate(['/leases', lease.id]);
+          }
+        });
       },
       error: (err) => {
         const code = err?.error?.code;
@@ -64,9 +102,20 @@ export class LeaseFormComponent implements OnInit {
                   : 'Failed to create lease.';
         this.toast.error(msg);
         setTimeout(() => this.saving = false);
-      },
-      complete: () => setTimeout(() => this.saving = false)
+      }
     });
+  }
+
+  private buildProvisionPayloads() {
+    const fromTemplates = this.templates
+      .filter(t => this.selectedTemplateIds.has(t.id))
+      .map((t, idx) => ({ title: t.title, body: t.body, sortOrder: idx }));
+
+    const fromOneOff = this.oneOffProvisions
+      .filter(p => p.title.trim() && p.body.trim())
+      .map((p, idx) => ({ title: p.title.trim(), body: p.body.trim(), sortOrder: fromTemplates.length + idx }));
+
+    return [...fromTemplates, ...fromOneOff];
   }
 
   hasError(field: string) {
