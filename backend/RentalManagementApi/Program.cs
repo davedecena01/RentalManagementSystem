@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using QuestPDF.Infrastructure;
 using RentalManagementApi.Application.Services;
 using RentalManagementApi.Data;
 using RentalManagementApi.Middleware;
 using RentalManagementApi.Options;
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,6 +95,9 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PropertyService>();
 builder.Services.AddScoped<LeaseService>();
 builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<MaintenanceService>();
+builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<ReminderService>();
 
 // ------------------------------------------------------------
 // Controllers + Swagger
@@ -123,6 +129,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors();
 app.UseAuthentication();
+app.UseMiddleware<RoleEnrichmentMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 
