@@ -1,0 +1,68 @@
+<div class="page-header">
+  <h1>Provision Templates</h1>
+  <p class="page-subtitle">Reusable contract clauses for your leases</p>
+</div>
+
+<div style="max-width:720px">
+  <div class="table-card" style="padding:24px;margin-bottom:24px">
+    <h2 style="font-size:15px;font-weight:600;margin-bottom:16px">
+      {{ editingId ? 'Edit Template' : 'New Template' }}
+    </h2>
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="form-group">
+        <label>Title *</label>
+        <input formControlName="title" type="text" placeholder="e.g. No Pets Policy" />
+        @if (hasError('title')) { <span class="field-error">Title is required (max 200 chars).</span> }
+      </div>
+      <div class="form-group">
+        <label>Body *</label>
+        <textarea formControlName="body" rows="4" placeholder="Enter the full clause text…" style="width:100%;resize:vertical"></textarea>
+        @if (hasError('body')) { <span class="field-error">Body is required (max 4000 chars).</span> }
+      </div>
+      <div style="display:flex;gap:12px">
+        <button type="submit" class="btn btn-primary" [disabled]="saving">
+          {{ saving ? 'Saving…' : (editingId ? 'Update Template' : 'Save Template') }}
+        </button>
+        @if (editingId) {
+          <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
+        }
+      </div>
+    </form>
+  </div>
+
+  @if (loading) {
+    <div class="loading">Loading…</div>
+  } @else if (templates.length === 0) {
+    <div class="empty-state">
+      <p>No provision templates yet. Add one above to reuse it across leases.</p>
+    </div>
+  } @else {
+    <div class="table-card">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Preview</th>
+            <th style="width:120px"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of templates; track t.id) {
+            <tr>
+              <td style="font-weight:500">{{ t.title }}</td>
+              <td style="color:var(--color-text-muted);max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                {{ t.body }}
+              </td>
+              <td>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-secondary" style="padding:4px 12px;font-size:13px" (click)="startEdit(t)">Edit</button>
+                  <button class="btn btn-danger" style="padding:4px 12px;font-size:13px" (click)="delete(t.id)">Delete</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
