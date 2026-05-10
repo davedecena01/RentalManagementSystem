@@ -17,9 +17,12 @@ public class PdfService(AppDbContext db)
 
         if (lease is null) throw new KeyNotFoundException("Lease not found.");
 
-        var hasAccess = requestorRole == "Landlord"
-            ? lease.Property.LandlordId == requestorId
-            : lease.TenantId == requestorId;
+        var hasAccess = requestorRole switch
+        {
+            "Landlord" => lease.Property.LandlordId == requestorId,
+            "Tenant"   => lease.TenantId == requestorId,
+            _          => false
+        };
 
         if (!hasAccess) throw new UnauthorizedAccessException("Access denied.");
 
@@ -121,13 +124,16 @@ public class PdfService(AppDbContext db)
 
         if (payment is null) throw new KeyNotFoundException("Payment not found.");
 
-        var hasAccess = requestorRole == "Landlord"
-            ? payment.Lease.Property.LandlordId == requestorId
-            : payment.Lease.TenantId == requestorId;
+        var hasAccess = requestorRole switch
+        {
+            "Landlord" => payment.Lease.Property.LandlordId == requestorId,
+            "Tenant"   => payment.Lease.TenantId == requestorId,
+            _          => false
+        };
 
         if (!hasAccess) throw new UnauthorizedAccessException("Access denied.");
 
-        var receiptRef = payment.Id.ToString()[..8].ToUpper();
+        var receiptRef = payment.Id.ToString().Replace("-", "")[^8..].ToUpper();
         var balance = payment.AmountDue - payment.AmountPaid;
 
         return Document.Create(container =>
