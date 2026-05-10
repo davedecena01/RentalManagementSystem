@@ -1,10 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { User } from '../models/user.model';
 import { Property, InventoryItem } from '../models/property.model';
 import { Lease } from '../models/lease.model';
 import { Payment } from '../models/payment.model';
+import { MaintenanceRequest } from '../models/maintenance.model';
+import { DashboardData } from '../models/dashboard.model';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -32,6 +35,10 @@ export class ApiService {
     return this.http.post<{ message: string; token: string; expiresAt: string }>(
       `${this.base}/auth/invite-tenant`, { email }
     );
+  }
+
+  getInviteEmail(token: string) {
+    return this.http.get<{ email: string }>(`${this.base}/auth/invite/${token}`);
   }
 
   acceptInvite(payload: { token: string; firstName: string; lastName: string; supabaseUserId: string }) {
@@ -105,6 +112,10 @@ export class ApiService {
     return this.http.patch<Lease>(`${this.base}/leases/${id}/terminate`, {});
   }
 
+  getLeasePdf(id: string): Observable<Blob> {
+    return this.http.get(`${this.base}/leases/${id}/pdf`, { responseType: 'blob' });
+  }
+
   // --- Payments ---
 
   getPayments(status?: string) {
@@ -120,8 +131,42 @@ export class ApiService {
     return this.http.post<Payment>(`${this.base}/payments/${paymentId}/manual-pay`, payload);
   }
 
+  getPaymentReceipt(id: string): Observable<Blob> {
+    return this.http.get(`${this.base}/payments/${id}/receipt`, { responseType: 'blob' });
+  }
+
   createStripeCheckout(leaseId: string) {
     return this.http.post<{ checkoutUrl: string }>(`${this.base}/leases/${leaseId}/payments/stripe-checkout`, {});
+  }
+
+  // --- Maintenance ---
+
+  getMaintenanceRequests() {
+    return this.http.get<MaintenanceRequest[]>(`${this.base}/maintenance`);
+  }
+
+  createMaintenanceRequest(payload: { propertyId: string; title: string; description: string; priority: string; imageUrl?: string }) {
+    return this.http.post<MaintenanceRequest>(`${this.base}/maintenance`, payload);
+  }
+
+  resolveMaintenanceRequest(id: string, resolutionNotes?: string) {
+    return this.http.patch<MaintenanceRequest>(`${this.base}/maintenance/${id}/resolve`, { resolutionNotes });
+  }
+
+  // --- Reminders ---
+
+  getReminderSettings(leaseId: string) {
+    return this.http.get<{ id: string; leaseId: string; isEnabled: boolean; daysBeforeDue: number; daysAfterDue: number }>(`${this.base}/reminders/${leaseId}`);
+  }
+
+  updateReminderSettings(leaseId: string, payload: { isEnabled: boolean; daysBeforeDue: number; daysAfterDue: number }) {
+    return this.http.put<{ id: string; leaseId: string; isEnabled: boolean; daysBeforeDue: number; daysAfterDue: number }>(`${this.base}/reminders/${leaseId}`, payload);
+  }
+
+  // --- Dashboard ---
+
+  getDashboard() {
+    return this.http.get<DashboardData>(`${this.base}/dashboard`);
   }
 
   // --- Storage ---
