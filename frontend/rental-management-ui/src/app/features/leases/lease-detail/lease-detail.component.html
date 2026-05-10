@@ -50,7 +50,40 @@
     }
   </div>
 
-  <div style="display:flex;gap:12px">
+  <div style="display:flex;gap:12px;margin-bottom:32px">
     <a routerLink="/payments" class="btn btn-secondary">View Payments</a>
+    <a [routerLink]="['/leases', id, 'pdf-preview']" class="btn btn-secondary">View Lease PDF</a>
   </div>
+
+  @if (isLandlord()) {
+    <div class="form-card" style="max-width:480px">
+      <div class="form-card-header">
+        <h2 style="font-size:16px;font-weight:600">Rent Reminders</h2>
+        <p class="page-subtitle">Email reminders sent to the tenant automatically</p>
+      </div>
+      @if (reminderLoading) {
+        <div class="loading" style="padding:12px 0">Loading settings…</div>
+      } @else {
+        <form [formGroup]="reminderForm" (ngSubmit)="saveReminders()">
+          <div class="form-group" style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+            <input type="checkbox" formControlName="isEnabled" id="isEnabled" style="width:18px;height:18px" />
+            <label for="isEnabled" style="margin:0;font-weight:500">Enable reminders for this lease</label>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="form-group">
+              <label>Days before due date</label>
+              <input type="number" formControlName="daysBeforeDue" min="0" max="30" />
+            </div>
+            <div class="form-group">
+              <label>Days after due date</label>
+              <input type="number" formControlName="daysAfterDue" min="0" max="30" />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" [disabled]="savingReminder || reminderForm.invalid">
+            {{ savingReminder ? 'Saving…' : 'Save Reminder Settings' }}
+          </button>
+        </form>
+      }
+    </div>
+  }
 }

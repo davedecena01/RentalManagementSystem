@@ -1,16 +1,17 @@
 import { Component, OnInit, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Payment } from '../../../core/models/payment.model';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-payments-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink],
   templateUrl: './payments-list.component.html'
 })
 export class PaymentsListComponent implements OnInit {
@@ -29,13 +30,16 @@ export class PaymentsListComponent implements OnInit {
   selectedPayment: Payment | null = null;
   savingPay = false;
 
+  proofFile: File | null = null;
+  proofFileUrl: string | null = null;
+  uploadingProof = false;
+
   manualForm: FormGroup = this.fb.group({
     amountPaid: [null, [Validators.required, Validators.min(0.01)]],
     notes: ['']
   });
 
   ngOnInit() {
-    // Handle Stripe return
     const sessionId = this.route.snapshot.queryParamMap.get('session_id');
     if (sessionId) {
       this.toast.success('Payment submitted via Stripe. Status will update shortly.');
@@ -61,6 +65,8 @@ export class PaymentsListComponent implements OnInit {
 
   openManualPay(p: Payment) {
     this.selectedPayment = p;
+    this.proofFile = null;
+    this.proofFileUrl = null;
     this.manualForm.reset({ amountPaid: p.amountDue - p.amountPaid, notes: '' });
     this.showManualPayModal = true;
   }
@@ -68,16 +74,79 @@ export class PaymentsListComponent implements OnInit {
   closeManualPay() {
     this.showManualPayModal = false;
     this.selectedPayment = null;
+    this.proofFile = null;
+    this.proofFileUrl = null;
+  }
+
+  onFileSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    if (!allowed.includes(file.type)) {
+      this.toast.error('Only JPG, PNG, WebP, or PDF files are allowed.');
+      input.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.toast.error('File must be under 5 MB.');
+      input.value = '';
+      return;
+    }
+
+    this.proofFile = file;
+    this.proofFileUrl = null;
+    this.uploadProof(file);
+  }
+
+  clearProof() {
+    this.proofFile = null;
+    this.proofFileUrl = null;
+  }
+
+  private uploadProof(file: File) {
+    if (!this.selectedPayment) return;
+    this.uploadingProof = true;
+    const ext = file.name.split('.').pop();
+    const path = `${this.selectedPayment.id}/${Date.now()}.${ext}`;
+
+    this.api.getUploadUrl('payment-proofs', path).subscribe({
+      next: async ({ uploadUrl }) => {
+        try {
+          const res = await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': file.type, 'x-upsert': 'true' },
+            body: file
+          });
+          if (!res.ok) throw new Error('Upload failed');
+          this.proofFileUrl = `${environment.supabaseUrl}/storage/v1/object/public/payment-proofs/${path}`;
+          this.toast.success('Proof uploaded.');
+        } catch {
+          this.toast.error('Failed to upload proof file.');
+          this.proofFile = null;
+        } finally {
+          this.uploadingProof = false;
+        }
+      },
+      error: () => {
+        this.toast.error('Failed to get upload URL.');
+        this.uploadingProof = false;
+        this.proofFile = null;
+      }
+    });
   }
 
   submitManualPay() {
     if (this.manualForm.invalid || !this.selectedPayment) { this.manualForm.markAllAsTouched(); return; }
+    if (this.uploadingProof) { this.toast.error('Please wait for the file upload to finish.'); return; }
     this.savingPay = true;
     const v = this.manualForm.value;
 
     this.api.manualPay(this.selectedPayment.id, {
       amountPaid: +v.amountPaid,
-      notes: v.notes || undefined
+      notes: v.notes || undefined,
+      proofFileUrl: this.proofFileUrl || undefined
     }).subscribe({
       next: () => {
         this.toast.success('Payment recorded.');
