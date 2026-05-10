@@ -98,6 +98,7 @@ builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<MaintenanceService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<ReminderService>();
+builder.Services.AddScoped<PdfService>();
 
 // ------------------------------------------------------------
 // Controllers + Swagger
