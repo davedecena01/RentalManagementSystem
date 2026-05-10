@@ -20,4 +20,5 @@ public class Lease
     public Property Property { get; set; } = null!;
     public User Tenant { get; set; } = null!;
     public ICollection<Payment> Payments { get; set; } = [];
+    public ICollection<LeaseProvision> Provisions { get; set; } = [];
 }
