@@ -11,6 +11,29 @@ QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Load .env file for local development (walk up from working directory to find it)
+var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
+while (dir != null)
+{
+    var envFile = Path.Combine(dir.FullName, ".env");
+    if (File.Exists(envFile))
+    {
+        foreach (var line in File.ReadAllLines(envFile))
+        {
+            var trimmed = line.Trim();
+            if (trimmed.Length == 0 || trimmed.StartsWith('#')) continue;
+            var idx = trimmed.IndexOf('=');
+            if (idx <= 0) continue;
+            var key = trimmed[..idx].Trim();
+            var val = trimmed[(idx + 1)..].Trim();
+            if (Environment.GetEnvironmentVariable(key) is null)
+                Environment.SetEnvironmentVariable(key, val);
+        }
+        break;
+    }
+    dir = dir.Parent;
+}
+
 builder.Configuration.AddEnvironmentVariables();
 
 // ------------------------------------------------------------
@@ -46,7 +69,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.MetadataAddress = $"{supabaseUrl}/auth/v1/.well-known/openid-configuration";
-        options.RequireHttpsMetadata = true;
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
         // Keep JWT claim names as-is (don't map sub → ClaimTypes.NameIdentifier, etc.)
         options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters

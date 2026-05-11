@@ -28,6 +28,18 @@ export const routes: Routes = [
   },
 
   {
+    path: 'leases/new',
+    canActivate: [landlordGuard],
+    loadComponent: () => import('./features/leases/lease-form/lease-form.component').then(m => m.LeaseFormComponent)
+  },
+
+  {
+    path: 'leases/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/leases/lease-detail/lease-detail.component').then(m => m.LeaseDetailComponent)
+  },
+
+  {
     path: 'leases',
     canActivate: [landlordGuard],
     loadChildren: () => import('./features/leases/leases.routes').then(m => m.leasesRoutes)
