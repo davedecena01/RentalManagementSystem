@@ -17,6 +17,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ReminderLog> ReminderLogs => Set<ReminderLog>();
     public DbSet<ProvisionTemplate> ProvisionTemplates => Set<ProvisionTemplate>();
     public DbSet<LeaseProvision> LeaseProvisions => Set<LeaseProvision>();
+    public DbSet<AppLog> AppLogs => Set<AppLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -176,6 +177,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasOne(p => p.Lease)
              .WithMany(l => l.Provisions)
              .HasForeignKey(p => p.LeaseId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AppLog>(e =>
+        {
+            e.HasKey(a => a.Id);
+            e.Property(a => a.Action).IsRequired().HasMaxLength(100);
+            e.Property(a => a.EntityType).IsRequired().HasMaxLength(50);
+            e.Property(a => a.Description).IsRequired().HasMaxLength(500);
+            e.HasIndex(a => new { a.UserId, a.CreatedAt });
+            e.HasOne(a => a.User)
+             .WithMany()
+             .HasForeignKey(a => a.UserId)
              .OnDelete(DeleteBehavior.Cascade);
         });
     }
