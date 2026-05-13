@@ -6,6 +6,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Property } from '../../../core/models/property.model';
 import { ProvisionTemplate } from '../../../core/models/provision.model';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-lease-form',
@@ -24,6 +25,10 @@ export class LeaseFormComponent implements OnInit {
   selectedTemplateIds = new Set<string>();
   oneOffProvisions: { title: string; body: string }[] = [];
   saving = false;
+
+  tenantIdFile: File | null = null;
+  tenantIdFileUrl: string | null = null;
+  uploadingTenantId = false;
 
   form: FormGroup = this.fb.group({
     propertyId: ['', Validators.required],
@@ -64,6 +69,7 @@ export class LeaseFormComponent implements OnInit {
 
   submit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.uploadingTenantId) { this.toast.error('Please wait for the tenant ID upload to finish.'); return; }
     this.saving = true;
     const v = this.form.value;
 
@@ -74,7 +80,8 @@ export class LeaseFormComponent implements OnInit {
       endDate: v.endDate,
       monthlyRent: +v.monthlyRent,
       depositAmount: +v.depositAmount,
-      advanceAmount: +v.advanceAmount
+      advanceAmount: +v.advanceAmount,
+      tenantIdFileUrl: this.tenantIdFileUrl || undefined
     }).subscribe({
       next: (lease) => {
         const provisions = this.buildProvisionPayloads();
@@ -104,6 +111,61 @@ export class LeaseFormComponent implements OnInit {
         setTimeout(() => this.saving = false);
       }
     });
+  }
+
+  onTenantIdSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    if (!allowed.includes(file.type)) {
+      this.toast.error('Only JPG, PNG, WebP, or PDF files are allowed.');
+      input.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.toast.error('File must be under 5 MB.');
+      input.value = '';
+      return;
+    }
+
+    this.tenantIdFile = file;
+    this.tenantIdFileUrl = null;
+    this.uploadingTenantId = true;
+
+    const ext = file.name.split('.').pop();
+    const path = `tenant-id-${Date.now()}.${ext}`;
+
+    this.api.getUploadUrl('tenant-ids', path).subscribe({
+      next: async ({ uploadUrl }) => {
+        try {
+          const res = await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': file.type, 'x-upsert': 'true' },
+            body: file
+          });
+          if (!res.ok) throw new Error('Upload failed');
+          this.tenantIdFileUrl = `${environment.supabaseUrl}/storage/v1/object/public/tenant-ids/${path}`;
+          this.toast.success('Tenant ID uploaded.');
+        } catch {
+          this.toast.error('Failed to upload tenant ID.');
+          this.tenantIdFile = null;
+        } finally {
+          this.uploadingTenantId = false;
+        }
+      },
+      error: () => {
+        this.toast.error('Failed to get upload URL.');
+        this.tenantIdFile = null;
+        this.uploadingTenantId = false;
+      }
+    });
+  }
+
+  clearTenantId() {
+    this.tenantIdFile = null;
+    this.tenantIdFileUrl = null;
   }
 
   private buildProvisionPayloads() {

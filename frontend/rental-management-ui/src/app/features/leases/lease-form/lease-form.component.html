@@ -53,6 +53,31 @@
         </div>
       </div>
 
+      <!-- Tenant ID Upload -->
+      <div style="border-top:1px solid var(--color-border);padding-top:20px;margin-top:8px">
+        <h3 style="font-size:14px;font-weight:600;margin-bottom:4px">Tenant ID (optional)</h3>
+        <p style="font-size:13px;color:var(--color-text-muted);margin-bottom:12px">Upload a scanned copy of the tenant's government-issued ID.</p>
+
+        @if (!tenantIdFile) {
+          <label class="btn btn-secondary" style="cursor:pointer;font-size:13px;display:inline-block">
+            Choose File
+            <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" (change)="onTenantIdSelect($event)" style="display:none" />
+          </label>
+        } @else {
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            @if (uploadingTenantId) {
+              <span style="font-size:13px;color:var(--color-text-muted)">Uploading…</span>
+            } @else if (tenantIdFileUrl) {
+              <span style="font-size:13px;color:var(--color-success,#16a34a)">✓ {{ tenantIdFile.name }}</span>
+              <a [href]="tenantIdFileUrl" target="_blank" style="font-size:12px">Preview</a>
+            } @else {
+              <span style="font-size:13px;color:var(--color-danger,#dc2626)">Upload failed</span>
+            }
+            <button type="button" class="btn btn-secondary" style="padding:2px 10px;font-size:12px" (click)="clearTenantId()">Remove</button>
+          </div>
+        }
+      </div>
+
       <!-- Special Provisions -->
       <div style="border-top:1px solid var(--color-border);padding-top:20px;margin-top:8px">
         <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">Special Provisions (optional)</h3>

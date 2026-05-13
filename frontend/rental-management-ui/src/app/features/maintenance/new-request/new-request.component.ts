@@ -4,6 +4,7 @@ import { RouterLink, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { environment } from '../../../../environments/environment';
 
 interface PropertyOption { id: string; name: string; }
 
@@ -21,6 +22,10 @@ export class NewRequestComponent implements OnInit {
 
   properties: PropertyOption[] = [];
   loading = false;
+
+  photoFile: File | null = null;
+  photoUrl: string | null = null;
+  uploadingPhoto = false;
 
   form = this.fb.group({
     propertyId: ['', Validators.required],
@@ -46,8 +51,64 @@ export class NewRequestComponent implements OnInit {
   get title() { return this.form.get('title')!; }
   get description() { return this.form.get('description')!; }
 
+  onPhotoSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      this.toast.error('Only JPG, PNG, or WebP images are allowed.');
+      input.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.toast.error('File must be under 5 MB.');
+      input.value = '';
+      return;
+    }
+
+    this.photoFile = file;
+    this.photoUrl = null;
+    this.uploadingPhoto = true;
+
+    const ext = file.name.split('.').pop();
+    const path = `maintenance-${Date.now()}.${ext}`;
+
+    this.api.getUploadUrl('maintenance-images', path).subscribe({
+      next: async ({ uploadUrl }) => {
+        try {
+          const res = await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': file.type, 'x-upsert': 'true' },
+            body: file
+          });
+          if (!res.ok) throw new Error('Upload failed');
+          this.photoUrl = `${environment.supabaseUrl}/storage/v1/object/public/maintenance-images/${path}`;
+          this.toast.success('Photo uploaded.');
+        } catch {
+          this.toast.error('Failed to upload photo.');
+          this.photoFile = null;
+        } finally {
+          this.uploadingPhoto = false;
+        }
+      },
+      error: () => {
+        this.toast.error('Failed to get upload URL.');
+        this.photoFile = null;
+        this.uploadingPhoto = false;
+      }
+    });
+  }
+
+  clearPhoto() {
+    this.photoFile = null;
+    this.photoUrl = null;
+  }
+
   onSubmit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.uploadingPhoto) { this.toast.error('Please wait for the photo upload to finish.'); return; }
     this.loading = true;
     const v = this.form.value;
 
@@ -55,7 +116,8 @@ export class NewRequestComponent implements OnInit {
       propertyId: v.propertyId!,
       title: v.title!,
       description: v.description!,
-      priority: v.priority!
+      priority: v.priority!,
+      imageUrl: this.photoUrl || undefined
     }).subscribe({
       next: () => {
         this.toast.success('Maintenance request submitted.');
