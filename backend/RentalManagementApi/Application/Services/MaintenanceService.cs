@@ -5,7 +5,7 @@ using RentalManagementApi.Entities;
 
 namespace RentalManagementApi.Application.Services;
 
-public class MaintenanceService(AppDbContext db)
+public class MaintenanceService(AppDbContext db, AppLogService logService)
 {
     public async Task<List<MaintenanceRequestDto>> GetForLandlordAsync(Guid landlordId)
     {
@@ -68,6 +68,8 @@ public class MaintenanceService(AppDbContext db)
         };
 
         db.MaintenanceRequests.Add(request);
+        logService.Log(property.LandlordId, "maintenance.submitted", "Maintenance", request.Id,
+            $"Maintenance request submitted: '{request.Title}'");
         await db.SaveChangesAsync();
 
         await db.Entry(request).Reference(m => m.Property).LoadAsync();
@@ -91,6 +93,8 @@ public class MaintenanceService(AppDbContext db)
         m.ResolvedAt = DateTime.UtcNow;
         m.UpdatedAt = DateTime.UtcNow;
 
+        logService.Log(landlordId, "maintenance.resolved", "Maintenance", m.Id,
+            $"Resolved maintenance request: '{m.Title}'");
         await db.SaveChangesAsync();
         return (ToDto(m), null);
     }
