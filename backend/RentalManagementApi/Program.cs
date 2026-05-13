@@ -123,6 +123,7 @@ builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<ReminderService>();
 builder.Services.AddScoped<PdfService>();
 builder.Services.AddScoped<ProvisionService>();
+builder.Services.AddScoped<AppLogService>();
 
 // ------------------------------------------------------------
 // Controllers + Swagger
