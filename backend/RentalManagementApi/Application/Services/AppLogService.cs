@@ -22,6 +22,9 @@ public class AppLogService(AppDbContext db)
 
     public async Task<PagedLogsResult> GetLogsAsync(Guid userId, string? entityType, int page, int pageSize)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         var query = db.AppLogs.Where(l => l.UserId == userId);
 
         if (!string.IsNullOrWhiteSpace(entityType))

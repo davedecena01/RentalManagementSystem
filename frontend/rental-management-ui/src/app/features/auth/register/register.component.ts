@@ -23,6 +23,9 @@ export class RegisterComponent {
     private toast: ToastService,
     private router: Router
   ) {
+    if (this.auth.isLoggedIn) {
+      this.router.navigate(['/dashboard']);
+    }
     this.form = this.fb.group({
       firstName: ['', [Validators.required, Validators.maxLength(100)]],
       lastName: ['', [Validators.required, Validators.maxLength(100)]],
@@ -39,7 +42,7 @@ export class RegisterComponent {
   }
 
   async onSubmit() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.loading = true;
 
     try {

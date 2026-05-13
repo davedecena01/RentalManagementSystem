@@ -23,6 +23,9 @@ export class LoginComponent {
     private toast: ToastService,
     private router: Router
   ) {
+    if (this.auth.isLoggedIn) {
+      this.router.navigate(['/dashboard']);
+    }
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]]
@@ -30,7 +33,7 @@ export class LoginComponent {
   }
 
   async onSubmit() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.loading = true;
 
     try {

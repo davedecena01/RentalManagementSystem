@@ -121,7 +121,9 @@
       "mcp__plugin_playwright_playwright__browser_select_option",
       "PowerShell(Invoke-WebRequest -Uri \"http://localhost:5000/healthz\" -UseBasicParsing -ErrorAction SilentlyContinue)",
       "PowerShell([System.Environment]::GetEnvironmentVariable\\(\"ConnectionStrings__DefaultConnection\"\\); [System.Environment]::GetEnvironmentVariable\\(\"Supabase__Url\"\\); [System.Environment]::GetEnvironmentVariable\\(\"ASPNETCORE_URLS\"\\))",
-      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:8080/healthz\" -UseBasicParsing -ErrorAction SilentlyContinue | Select-Object StatusCode, @{N='Body';E={$_.Content}})"
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:8080/healthz\" -UseBasicParsing -ErrorAction SilentlyContinue | Select-Object StatusCode, @{N='Body';E={$_.Content}})",
+      "mcp__plugin_playwright_playwright__browser_handle_dialog",
+      "PowerShell(git push -u origin feature/wave-5-lease-special-provisions 2>&1)"
     ],
     "deny": [],
     "ask": [
