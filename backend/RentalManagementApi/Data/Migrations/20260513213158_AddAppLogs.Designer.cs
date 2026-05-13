@@ -12,7 +12,7 @@ using RentalManagementApi.Data;
 namespace RentalManagementApi.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260513212806_AddAppLogs")]
+    [Migration("20260513213158_AddAppLogs")]
     partial class AddAppLogs
     {
         /// <inheritdoc />
@@ -538,7 +538,7 @@ namespace RentalManagementApi.Data.Migrations
                     b.HasOne("RentalManagementApi.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");

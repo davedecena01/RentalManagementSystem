@@ -535,7 +535,7 @@ namespace RentalManagementApi.Data.Migrations
                     b.HasOne("RentalManagementApi.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
