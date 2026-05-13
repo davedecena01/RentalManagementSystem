@@ -5,7 +5,7 @@ using RentalManagementApi.Entities;
 
 namespace RentalManagementApi.Application.Services;
 
-public class LeaseService(AppDbContext db)
+public class LeaseService(AppDbContext db, AppLogService logService)
 {
     public async Task<List<LeaseDto>> GetAllForLandlordAsync(Guid landlordId)
     {
@@ -93,6 +93,8 @@ public class LeaseService(AppDbContext db)
             current = current.AddMonths(1);
         }
 
+        logService.Log(landlordId, "lease.created", "Lease", lease.Id,
+            $"Lease created for {property.Name} — tenant {tenant.FirstName} {tenant.LastName}");
         await db.SaveChangesAsync();
 
         lease.Property = property;
@@ -110,6 +112,8 @@ public class LeaseService(AppDbContext db)
 
         lease.Status = LeaseStatus.Terminated;
         lease.UpdatedAt = DateTime.UtcNow;
+        logService.Log(landlordId, "lease.terminated", "Lease", lease.Id,
+            $"Lease terminated for {lease.Property.Name}");
         await db.SaveChangesAsync();
         return ToDto(lease);
     }
