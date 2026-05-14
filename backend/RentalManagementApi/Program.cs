@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using QuestPDF.Infrastructure;
@@ -117,6 +118,34 @@ builder.Services.AddCors(options =>
 });
 
 // ------------------------------------------------------------
+// Rate Limiting
+// ------------------------------------------------------------
+builder.Services.AddRateLimiter(options =>
+{
+    // 5 attempts per minute per IP on auth endpoints (register, accept-invite)
+    options.AddFixedWindowLimiter("auth", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 5;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 0;
+    });
+
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.ContentType = "application/json";
+        await context.HttpContext.Response.WriteAsync(
+            System.Text.Json.JsonSerializer.Serialize(new
+            {
+                error = "Too many requests. Please try again later.",
+                code = "RATE_LIMIT_EXCEEDED"
+            }),
+            token);
+    };
+});
+
+// ------------------------------------------------------------
 // Services
 // ------------------------------------------------------------
 builder.Services.AddScoped<AuthService>();
@@ -162,6 +191,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseMiddleware<RoleEnrichmentMiddleware>();
 app.UseAuthorization();

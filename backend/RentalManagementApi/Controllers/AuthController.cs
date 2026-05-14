@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using RentalManagementApi.Application.Services;
 using RentalManagementApi.Common;
 using RentalManagementApi.DTOs.Auth;
@@ -12,6 +13,7 @@ public class AuthController(AuthService authService) : ControllerBase
 {
     [HttpPost("register")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         var user = await authService.RegisterAsync(request.SupabaseUserId, request);
@@ -44,6 +46,7 @@ public class AuthController(AuthService authService) : ControllerBase
 
     [HttpPost("accept-invite")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> AcceptInvite([FromBody] AcceptInviteRequest request)
     {
         try
