@@ -118,6 +118,7 @@ public class PaymentService(AppDbContext db, IOptions<StripeOptions> stripeOptio
             .Include(p => p.Lease).ThenInclude(l => l.Property)
             .FirstOrDefaultAsync(p => p.Id == paymentId);
         if (payment is null || payment.Status == PaymentStatus.Paid) return;
+        if (payment.Lease?.Property is null) return;
 
         payment.AmountPaid = payment.AmountDue;
         payment.Status = PaymentStatus.Paid;
