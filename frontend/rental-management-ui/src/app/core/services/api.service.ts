@@ -9,6 +9,7 @@ import { Payment } from '../models/payment.model';
 import { MaintenanceRequest } from '../models/maintenance.model';
 import { DashboardData } from '../models/dashboard.model';
 import { ProvisionTemplate, LeaseProvision, LeaseProvisionPayload } from '../models/provision.model';
+import { AppLog, PagedLogsResult } from '../models/log.model';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -168,6 +169,20 @@ export class ApiService {
 
   getDashboard() {
     return this.http.get<DashboardData>(`${this.base}/dashboard`);
+  }
+
+  // --- Logs ---
+
+  getLogs(entityType?: string, page = 1, pageSize = 20): Observable<PagedLogsResult> {
+    let params = new HttpParams()
+      .set('page', String(page))
+      .set('pageSize', String(pageSize));
+    if (entityType) params = params.set('entityType', entityType);
+    return this.http.get<PagedLogsResult>(`${this.base}/logs`, { params });
+  }
+
+  loadDemoData(): Observable<{ message: string; summary?: unknown }> {
+    return this.http.post<{ message: string; summary?: unknown }>(`${this.base}/seed/demo`, {});
   }
 
   // --- Storage ---
