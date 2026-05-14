@@ -8,4 +8,5 @@ public class AppOptions
     public string InternalApiKey { get; set; } = string.Empty;
     public string PdfStorageBucket { get; set; } = "lease-documents";
     public bool DemoMode { get; set; } = false;
+    public bool EnableSeedEndpoint { get; set; } = false;
 }
