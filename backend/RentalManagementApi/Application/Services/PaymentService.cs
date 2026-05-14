@@ -9,7 +9,7 @@ using Stripe.Checkout;
 
 namespace RentalManagementApi.Application.Services;
 
-public class PaymentService(AppDbContext db, IOptions<StripeOptions> stripeOptions)
+public class PaymentService(AppDbContext db, IOptions<StripeOptions> stripeOptions, AppLogService logService)
 {
     public async Task<List<PaymentDto>> GetForLandlordAsync(Guid landlordId, string? statusFilter)
     {
@@ -114,13 +114,17 @@ public class PaymentService(AppDbContext db, IOptions<StripeOptions> stripeOptio
         if (!session.Metadata.TryGetValue("payment_id", out var paymentIdStr)) return;
         if (!Guid.TryParse(paymentIdStr, out var paymentId)) return;
 
-        var payment = await db.Payments.FindAsync(paymentId);
+        var payment = await db.Payments
+            .Include(p => p.Lease).ThenInclude(l => l.Property)
+            .FirstOrDefaultAsync(p => p.Id == paymentId);
         if (payment is null || payment.Status == PaymentStatus.Paid) return;
 
         payment.AmountPaid = payment.AmountDue;
         payment.Status = PaymentStatus.Paid;
         payment.PaidAt = DateTime.UtcNow;
         payment.UpdatedAt = DateTime.UtcNow;
+        logService.Log(payment.Lease.Property.LandlordId, "payment.stripe_paid", "Payment", payment.Id,
+            $"Stripe payment confirmed for {payment.Lease.Property.Name} — ₱{payment.AmountDue:N2}");
         await db.SaveChangesAsync();
     }
 
@@ -150,6 +154,9 @@ public class PaymentService(AppDbContext db, IOptions<StripeOptions> stripeOptio
             payment.PaidAt = DateTime.UtcNow;
 
         payment.UpdatedAt = DateTime.UtcNow;
+        var landlordId = payment.Lease.Property.LandlordId;
+        logService.Log(landlordId, "payment.recorded", "Payment", payment.Id,
+            $"Manual payment of ₱{request.AmountPaid:N2} recorded for {payment.Lease.Property.Name}");
         await db.SaveChangesAsync();
 
         return (ToDto(payment), null);
