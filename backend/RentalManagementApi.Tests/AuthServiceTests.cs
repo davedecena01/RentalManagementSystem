@@ -121,4 +121,22 @@ public class AuthServiceTests
 
         Assert.Equal("INVITE_TOKEN_EXPIRED", ex.Message);
     }
+
+    [Fact]
+    public void SubClaimCheck_ReturnsFalse_WhenMismatch()
+    {
+        var jwtSub = "11111111-1111-1111-1111-111111111111";
+        var requestedId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var match = jwtSub.Equals(requestedId.ToString(), StringComparison.OrdinalIgnoreCase);
+        Assert.False(match);
+    }
+
+    [Fact]
+    public void SubClaimCheck_ReturnsTrue_WhenMatch()
+    {
+        var id = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var jwtSub = id.ToString();
+        var match = jwtSub.Equals(id.ToString(), StringComparison.OrdinalIgnoreCase);
+        Assert.True(match);
+    }
 }

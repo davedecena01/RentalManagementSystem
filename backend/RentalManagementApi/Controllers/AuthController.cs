@@ -16,6 +16,16 @@ public class AuthController(AuthService authService) : ControllerBase
     [EnableRateLimiting("auth")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
+        // If the caller includes a valid JWT, ensure it belongs to the claimed SupabaseUserId.
+        // This prevents fabricated registrations from callers who have a real Supabase session
+        // but claim a different user's ID.
+        var jwtSub = User.FindFirst("sub")?.Value;
+        if (jwtSub is not null &&
+            !jwtSub.Equals(request.SupabaseUserId.ToString(), StringComparison.OrdinalIgnoreCase))
+        {
+            return Unauthorized(new ApiError("Token does not match the requested user ID.", "TOKEN_MISMATCH"));
+        }
+
         var user = await authService.RegisterAsync(request.SupabaseUserId, request);
         return Ok(new { id = user.Id, role = user.Role });
     }
