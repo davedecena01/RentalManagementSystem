@@ -15,5 +15,12 @@ export const accountRoutes: Routes = [
     loadComponent: () =>
       import('./provision-templates/provision-templates.component')
         .then(m => m.ProvisionTemplatesComponent)
+  },
+  {
+    path: 'activity',
+    canActivate: [landlordGuard],
+    loadComponent: () =>
+      import('./activity/activity.component')
+        .then(m => m.ActivityComponent)
   }
 ];
