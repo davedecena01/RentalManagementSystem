@@ -111,6 +111,7 @@ public class PaymentsController(
 
     [HttpPost("stripe-webhook")]
     [AllowAnonymous]
+    [DisableRequestSizeLimit]
     public async Task<IActionResult> StripeWebhook()
     {
         var payload = await new StreamReader(Request.Body).ReadToEndAsync();

@@ -5,6 +5,7 @@ using RentalManagementApi.Common;
 using RentalManagementApi.Options;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace RentalManagementApi.Controllers;
 
@@ -14,6 +15,7 @@ namespace RentalManagementApi.Controllers;
 public class StorageController(IOptions<SupabaseOptions> supabaseOptions, IHttpClientFactory httpClientFactory) : ControllerBase
 {
     private static readonly HashSet<string> AllowedBuckets = ["payment-proofs", "tenant-ids", "maintenance-images"];
+    private static readonly Regex SafePathPattern = new(@"^[a-zA-Z0-9._-]+$", RegexOptions.Compiled);
 
     [HttpGet("upload-url")]
     public async Task<IActionResult> GetUploadUrl([FromQuery] string bucket, [FromQuery] string path)
@@ -23,6 +25,9 @@ public class StorageController(IOptions<SupabaseOptions> supabaseOptions, IHttpC
 
         if (!AllowedBuckets.Contains(bucket))
             return BadRequest(new ApiError("Invalid storage bucket.", "INVALID_BUCKET"));
+
+        if (!SafePathPattern.IsMatch(path))
+            return BadRequest(new ApiError("Invalid file path.", "INVALID_PATH"));
 
         var opts = supabaseOptions.Value;
         var client = httpClientFactory.CreateClient();
