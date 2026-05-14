@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using RentalManagementApi.Application.Services;
 using RentalManagementApi.Common;
 using RentalManagementApi.Options;
 using System.Net.Http.Headers;
@@ -12,7 +13,7 @@ namespace RentalManagementApi.Controllers;
 [ApiController]
 [Route("api/storage")]
 [Authorize]
-public class StorageController(IOptions<SupabaseOptions> supabaseOptions, IHttpClientFactory httpClientFactory) : ControllerBase
+public class StorageController(IOptions<SupabaseOptions> supabaseOptions, IHttpClientFactory httpClientFactory, FileValidationService fileValidationService) : ControllerBase
 {
     private static readonly HashSet<string> AllowedBuckets = ["payment-proofs", "tenant-ids", "maintenance-images"];
     private static readonly Regex SafePathPattern = new(@"^[a-zA-Z0-9._-]+$", RegexOptions.Compiled);
@@ -52,5 +53,24 @@ public class StorageController(IOptions<SupabaseOptions> supabaseOptions, IHttpC
         var signedUrl = doc.RootElement.GetProperty("url").GetString();
 
         return Ok(new { uploadUrl = $"{opts.Url}/storage/v1{signedUrl}" });
+    }
+
+    [HttpPost("validate")]
+    public async Task<IActionResult> ValidateUpload([FromQuery] string bucket, [FromQuery] string path)
+    {
+        if (string.IsNullOrWhiteSpace(bucket) || string.IsNullOrWhiteSpace(path))
+            return BadRequest(new ApiError("bucket and path are required.", "INVALID_INPUT"));
+
+        if (!AllowedBuckets.Contains(bucket))
+            return BadRequest(new ApiError("Invalid storage bucket.", "INVALID_BUCKET"));
+
+        if (!SafePathPattern.IsMatch(path))
+            return BadRequest(new ApiError("Invalid file path.", "INVALID_PATH"));
+
+        var valid = await fileValidationService.ValidateAndDeleteIfInvalidAsync(bucket, path);
+        if (!valid)
+            return BadRequest(new ApiError("File type not allowed. Only JPG, PNG, WebP, and PDF are accepted.", "INVALID_FILE_TYPE"));
+
+        return Ok(new { valid = true });
     }
 }

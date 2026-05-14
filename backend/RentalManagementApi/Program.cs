@@ -160,6 +160,7 @@ builder.Services.AddScoped<PdfService>();
 builder.Services.AddScoped<ProvisionService>();
 builder.Services.AddScoped<AppLogService>();
 builder.Services.AddScoped<SeedService>();
+builder.Services.AddScoped<FileValidationService>();
 
 // ------------------------------------------------------------
 // Controllers + Swagger

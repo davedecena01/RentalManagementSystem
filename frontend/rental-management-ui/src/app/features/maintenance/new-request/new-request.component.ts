@@ -84,10 +84,12 @@ export class NewRequestComponent implements OnInit {
             body: file
           });
           if (!res.ok) throw new Error('Upload failed');
+          const validation = await this.api.validateUpload('maintenance-images', path).toPromise();
+          if (!validation?.valid) throw new Error('Invalid file type');
           this.photoUrl = `${environment.supabaseUrl}/storage/v1/object/public/maintenance-images/${path}`;
           this.toast.success('Photo uploaded.');
         } catch {
-          this.toast.error('Failed to upload photo.');
+          this.toast.error('File rejected. Only JPG, PNG, or WebP images are allowed.');
           this.photoFile = null;
         } finally {
           this.uploadingPhoto = false;

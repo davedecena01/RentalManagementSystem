@@ -192,6 +192,13 @@ export class ApiService {
     return this.http.get<{ uploadUrl: string }>(`${this.base}/storage/upload-url`, { params });
   }
 
+  validateUpload(bucket: string, path: string) {
+    return this.http.post<{ valid: boolean }>(
+      `${this.base}/storage/validate`, null,
+      { params: { bucket, path } }
+    );
+  }
+
   // --- Provision Templates ---
 
   getProvisionTemplates() {

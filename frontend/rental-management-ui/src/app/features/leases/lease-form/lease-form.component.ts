@@ -146,10 +146,12 @@ export class LeaseFormComponent implements OnInit {
             body: file
           });
           if (!res.ok) throw new Error('Upload failed');
+          const validation = await this.api.validateUpload('tenant-ids', path).toPromise();
+          if (!validation?.valid) throw new Error('Invalid file type');
           this.tenantIdFileUrl = `${environment.supabaseUrl}/storage/v1/object/public/tenant-ids/${path}`;
           this.toast.success('Tenant ID uploaded.');
         } catch {
-          this.toast.error('Failed to upload tenant ID.');
+          this.toast.error('File rejected. Only JPG, PNG, WebP, or PDF files are allowed.');
           this.tenantIdFile = null;
         } finally {
           this.uploadingTenantId = false;
