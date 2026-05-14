@@ -1,0 +1,122 @@
+<!-- Full-screen overlay -->
+<div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--color-bg,#fff);border-radius:12px;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+
+    <!-- Header -->
+    <div style="padding:24px 28px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em">
+          Step {{ step() }} of {{ totalSteps }}
+        </span>
+        <button type="button" (click)="skip()"
+                style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--color-text-muted);padding:0">
+          Skip for now
+        </button>
+      </div>
+      <!-- Progress bar -->
+      <div style="height:4px;background:var(--color-border,#e5e7eb);border-radius:2px;overflow:hidden">
+        <div [style.width.%]="(step() / totalSteps) * 100"
+             style="height:100%;background:var(--color-primary,#6366f1);transition:width 0.3s ease"></div>
+      </div>
+    </div>
+
+    <!-- Step content -->
+    <div style="padding:24px 28px 28px">
+
+      <!-- Step 1: Profile -->
+      @if (step() === 1) {
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:8px">Welcome! Let's set up your profile.</h2>
+        <p style="font-size:14px;color:var(--color-text-muted);margin-bottom:20px">
+          Your name and contact details help tenants identify you.
+        </p>
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+          <div class="form-row">
+            <div class="form-group">
+              <label>First Name *</label>
+              <input formControlName="firstName" type="text" />
+              @if (hasError('firstName')) { <span class="field-error">Required.</span> }
+            </div>
+            <div class="form-group">
+              <label>Last Name *</label>
+              <input formControlName="lastName" type="text" />
+              @if (hasError('lastName')) { <span class="field-error">Required.</span> }
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Phone (optional)</label>
+            <input formControlName="phone" type="tel" placeholder="+63 900 000 0000" />
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px" [disabled]="saving">
+            {{ saving ? 'Saving…' : 'Save & Continue →' }}
+          </button>
+        </form>
+      }
+
+      <!-- Step 2: Add Property -->
+      @if (step() === 2) {
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:8px">Add your first property.</h2>
+        <p style="font-size:14px;color:var(--color-text-muted);margin-bottom:20px">
+          Properties are the foundation of your portfolio. Add a property to start managing leases and rent.
+        </p>
+        <button type="button" class="btn btn-primary" style="width:100%;margin-bottom:12px" (click)="goToProperty()">
+          Create Property →
+        </button>
+        <button type="button" class="btn btn-secondary" style="width:100%" (click)="advance()">
+          I've already added one →
+        </button>
+      }
+
+      <!-- Step 3: Create Lease -->
+      @if (step() === 3) {
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:8px">Create your first lease.</h2>
+        <p style="font-size:14px;color:var(--color-text-muted);margin-bottom:20px">
+          Assign a tenant to a property and the system will automatically schedule monthly rent payments.
+        </p>
+        <button type="button" class="btn btn-primary" style="width:100%;margin-bottom:12px" (click)="goToLease()">
+          Create Lease →
+        </button>
+        <button type="button" class="btn btn-secondary" style="width:100%" (click)="advance()">
+          I've already created one →
+        </button>
+      }
+
+      <!-- Step 4: Dashboard Tour -->
+      @if (step() === 4) {
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:8px">Explore your dashboard.</h2>
+        <p style="font-size:14px;color:var(--color-text-muted);margin-bottom:20px">
+          Here's a quick tour of the key features on your dashboard.
+        </p>
+
+        @if (tourStep() === 0) {
+          <div style="text-align:center;padding:16px 0">
+            <p style="font-size:14px;color:var(--color-text-muted);margin-bottom:20px">
+              You're all set! Click "Start Tour" to walk through the dashboard highlights, or finish now.
+            </p>
+            <button type="button" class="btn btn-secondary" style="margin-right:12px" (click)="nextTourStep()">
+              Start Tour
+            </button>
+            <button type="button" class="btn btn-primary" (click)="completeTour()">
+              Finish Setup
+            </button>
+          </div>
+        } @else {
+          <div style="background:var(--color-bg-subtle,#f8f9fa);border-radius:8px;padding:16px;margin-bottom:16px">
+            <div style="font-size:12px;font-weight:600;color:var(--color-primary,#6366f1);margin-bottom:4px">
+              {{ tourStep() }} / {{ tourTooltips.length }}
+            </div>
+            <div style="font-size:15px;font-weight:600;margin-bottom:4px">
+              {{ tourTooltips[tourStep() - 1].title }}
+            </div>
+            <div style="font-size:13px;color:var(--color-text-muted)">
+              {{ tourTooltips[tourStep() - 1].body }}
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary" style="width:100%" (click)="nextTourStep()">
+            {{ tourStep() < tourTooltips.length ? 'Next →' : 'Finish Tour ✓' }}
+          </button>
+        }
+      }
+
+    </div>
+  </div>
+</div>

@@ -1,17 +1,20 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, inject, computed } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
+import { ToastService } from '../../core/services/toast.service';
 import { DashboardData } from '../../core/models/dashboard.model';
+import { AppLog } from '../../core/models/log.model';
+import { OnboardingWizardComponent } from './onboarding-wizard/onboarding-wizard.component';
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, OnboardingWizardComponent],
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -20,12 +23,22 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private auth = inject(AuthService);
   private api = inject(ApiService);
+  private toast = inject(ToastService);
 
   user = this.auth.currentUser;
   isLandlord = computed(() => this.auth.currentUser()?.role === 'Landlord');
 
+  private sessionSkipped = signal(false);
+  showWizard = computed(() =>
+    this.isLandlord() &&
+    this.user()?.onboardingCompleted === false &&
+    !this.sessionSkipped()
+  );
+
   data: DashboardData | null = null;
   loading = true;
+  recentLogs: AppLog[] = [];
+  seedingDemo = false;
 
   private incomeChart: Chart | null = null;
   private breakdownChart: Chart | null = null;
@@ -45,6 +58,12 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       error: () => { this.loading = false; }
     });
+    if (this.isLandlord()) {
+      this.api.getLogs(undefined, 1, 5).subscribe({
+        next: (r) => { this.recentLogs = r.items; },
+        error: () => {}
+      });
+    }
   }
 
   ngAfterViewInit() {
@@ -55,6 +74,45 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy() {
     this.incomeChart?.destroy();
     this.breakdownChart?.destroy();
+  }
+
+  onWizardDismissed(completed: boolean) {
+    this.sessionSkipped.set(true);
+    if (completed) {
+      this.api.getMe().subscribe(u => this.auth.setCurrentUser(u));
+    }
+  }
+
+  loadDemoData() {
+    if (!confirm('This will create sample properties, tenants, leases, and payments for demo purposes. Continue?')) return;
+    this.seedingDemo = true;
+    this.api.loadDemoData().subscribe({
+      next: () => {
+        this.toast.success('Demo data loaded! Refreshing…');
+        this.seedingDemo = false;
+        this.ngOnInit();
+      },
+      error: () => {
+        this.toast.error('Failed to load demo data.');
+        this.seedingDemo = false;
+      }
+    });
+  }
+
+  relativeTime(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${Math.max(1, mins)}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
+  }
+
+  iconFor(entityType: string): string {
+    const icons: Record<string, string> = {
+      Property: '🏠', Lease: '📄', Payment: '💰', Maintenance: '🔧', Tenant: '👤'
+    };
+    return icons[entityType] ?? '📝';
   }
 
   private renderCharts() {
