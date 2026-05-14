@@ -124,6 +124,7 @@ builder.Services.AddScoped<ReminderService>();
 builder.Services.AddScoped<PdfService>();
 builder.Services.AddScoped<ProvisionService>();
 builder.Services.AddScoped<AppLogService>();
+builder.Services.AddScoped<SeedService>();
 
 // ------------------------------------------------------------
 // Controllers + Swagger
