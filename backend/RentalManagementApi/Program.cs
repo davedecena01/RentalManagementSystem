@@ -11,6 +11,12 @@ QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(k =>
+{
+    k.AddServerHeader = false;
+    k.Limits.MaxRequestBodySize = 10 * 1024 * 1024; // 10 MB global limit
+});
+
 // Load .env file for local development (walk up from working directory to find it)
 var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
 while (dir != null)
@@ -147,6 +153,7 @@ var app = builder.Build();
 // ------------------------------------------------------------
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseMiddleware<SecurityHeadersMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
