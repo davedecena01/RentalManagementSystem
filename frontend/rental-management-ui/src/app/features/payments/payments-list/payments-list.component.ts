@@ -6,7 +6,6 @@ import { ApiService } from '../../../core/services/api.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Payment } from '../../../core/models/payment.model';
-import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-payments-list',
@@ -33,6 +32,7 @@ export class PaymentsListComponent implements OnInit {
   proofFile: File | null = null;
   proofFileUrl: string | null = null;
   uploadingProof = false;
+  loadingProof: Record<string, boolean> = {};
 
   manualForm: FormGroup = this.fb.group({
     amountPaid: [null, [Validators.required, Validators.min(0.01)]],
@@ -120,7 +120,7 @@ export class PaymentsListComponent implements OnInit {
             body: file
           });
           if (!res.ok) throw new Error('Upload failed');
-          this.proofFileUrl = `${environment.supabaseUrl}/storage/v1/object/public/payment-proofs/${path}`;
+          this.proofFileUrl = path;
           this.toast.success('Proof uploaded.');
         } catch {
           this.toast.error('Failed to upload proof file.');
@@ -155,6 +155,21 @@ export class PaymentsListComponent implements OnInit {
       },
       error: () => this.toast.error('Failed to record payment.'),
       complete: () => setTimeout(() => this.savingPay = false)
+    });
+  }
+
+  viewPaymentProof(p: Payment) {
+    if (!p.proofFileUrl) return;
+    this.loadingProof[p.id] = true;
+    this.api.getSignedUrl('payment-proofs', p.proofFileUrl).subscribe({
+      next: ({ url }) => {
+        window.open(url, '_blank');
+        this.loadingProof[p.id] = false;
+      },
+      error: () => {
+        this.toast.error('Could not load payment proof. Please try again.');
+        this.loadingProof[p.id] = false;
+      }
     });
   }
 

@@ -16,6 +16,7 @@ namespace RentalManagementApi.Controllers;
 public class StorageController(IOptions<SupabaseOptions> supabaseOptions, IHttpClientFactory httpClientFactory, FileValidationService fileValidationService) : ControllerBase
 {
     private static readonly HashSet<string> AllowedBuckets = ["payment-proofs", "tenant-ids", "maintenance-images"];
+    private static readonly HashSet<string> PrivateBuckets = ["payment-proofs", "tenant-ids"];
     private static readonly Regex SafePathPattern = new(@"^[a-zA-Z0-9._-]+$", RegexOptions.Compiled);
 
     [HttpGet("upload-url")]
@@ -32,15 +33,16 @@ public class StorageController(IOptions<SupabaseOptions> supabaseOptions, IHttpC
 
         var opts = supabaseOptions.Value;
         var client = httpClientFactory.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", opts.ServiceRoleKey);
-        client.DefaultRequestHeaders.Add("apikey", opts.ServiceRoleKey);
-
         var body = JsonSerializer.Serialize(new { expiresIn = 3600 });
-        var content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
+        var requestMsg = new HttpRequestMessage(HttpMethod.Post,
+            $"{opts.Url}/storage/v1/object/upload/sign/{bucket}/{path}")
+        {
+            Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json")
+        };
+        requestMsg.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", opts.ServiceRoleKey);
+        requestMsg.Headers.Add("apikey", opts.ServiceRoleKey);
 
-        var response = await client.PostAsync(
-            $"{opts.Url}/storage/v1/object/upload/sign/{bucket}/{path}",
-            content);
+        var response = await client.SendAsync(requestMsg);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -53,6 +55,41 @@ public class StorageController(IOptions<SupabaseOptions> supabaseOptions, IHttpC
         var signedUrl = doc.RootElement.GetProperty("url").GetString();
 
         return Ok(new { uploadUrl = $"{opts.Url}/storage/v1{signedUrl}" });
+    }
+
+    [HttpGet("signed-url")]
+    public async Task<IActionResult> GetSignedUrl([FromQuery] string bucket, [FromQuery] string path)
+    {
+        if (string.IsNullOrWhiteSpace(bucket) || string.IsNullOrWhiteSpace(path))
+            return BadRequest(new ApiError("bucket and path are required.", "INVALID_INPUT"));
+
+        if (!PrivateBuckets.Contains(bucket))
+            return BadRequest(new ApiError("Bucket does not require signed access.", "INVALID_BUCKET"));
+
+        if (!SafePathPattern.IsMatch(path))
+            return BadRequest(new ApiError("Invalid file path.", "INVALID_PATH"));
+
+        var opts = supabaseOptions.Value;
+        var client = httpClientFactory.CreateClient();
+        var body = System.Text.Json.JsonSerializer.Serialize(new { expiresIn = 3600 });
+        var requestMsg = new HttpRequestMessage(HttpMethod.Post,
+            $"{opts.Url}/storage/v1/object/sign/{bucket}/{path}")
+        {
+            Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json")
+        };
+        requestMsg.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", opts.ServiceRoleKey);
+        requestMsg.Headers.Add("apikey", opts.ServiceRoleKey);
+
+        var response = await client.SendAsync(requestMsg);
+
+        if (!response.IsSuccessStatusCode)
+            return StatusCode((int)response.StatusCode, new ApiError("Failed to generate signed URL.", "STORAGE_ERROR"));
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        var signedUrl = doc.RootElement.GetProperty("signedURL").GetString();
+
+        return Ok(new { url = $"{opts.Url}/storage/v1{signedUrl}" });
     }
 
     [HttpPost("validate")]

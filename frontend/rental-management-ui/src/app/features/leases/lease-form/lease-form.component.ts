@@ -6,7 +6,6 @@ import { ApiService } from '../../../core/services/api.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Property } from '../../../core/models/property.model';
 import { ProvisionTemplate } from '../../../core/models/provision.model';
-import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-lease-form',
@@ -148,7 +147,7 @@ export class LeaseFormComponent implements OnInit {
           if (!res.ok) throw new Error('Upload failed');
           const validation = await this.api.validateUpload('tenant-ids', path).toPromise();
           if (!validation?.valid) throw new Error('Invalid file type');
-          this.tenantIdFileUrl = `${environment.supabaseUrl}/storage/v1/object/public/tenant-ids/${path}`;
+          this.tenantIdFileUrl = path;
           this.toast.success('Tenant ID uploaded.');
         } catch {
           this.toast.error('File rejected. Only JPG, PNG, WebP, or PDF files are allowed.');

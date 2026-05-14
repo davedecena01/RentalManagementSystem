@@ -199,6 +199,12 @@ export class ApiService {
     );
   }
 
+  getSignedUrl(bucket: string, path: string) {
+    return this.http.get<{ url: string }>(`${this.base}/storage/signed-url`, {
+      params: { bucket, path }
+    });
+  }
+
   // --- Provision Templates ---
 
   getProvisionTemplates() {

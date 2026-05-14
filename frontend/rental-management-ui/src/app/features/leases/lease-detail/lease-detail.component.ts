@@ -23,6 +23,7 @@ export class LeaseDetailComponent implements OnInit {
 
   lease: Lease | null = null;
   loading = true;
+  loadingTenantId = false;
   isLandlord = computed(() => this.auth.currentUser()?.role === 'Landlord');
 
   reminderLoading = false;
@@ -136,6 +137,21 @@ export class LeaseDetailComponent implements OnInit {
         this.reminderLoading = false;
       },
       error: () => { this.reminderLoading = false; }
+    });
+  }
+
+  viewTenantId() {
+    if (!this.lease?.tenantIdFileUrl) return;
+    this.loadingTenantId = true;
+    this.api.getSignedUrl('tenant-ids', this.lease.tenantIdFileUrl).subscribe({
+      next: ({ url }) => {
+        window.open(url, '_blank');
+        this.loadingTenantId = false;
+      },
+      error: () => {
+        this.toast.error('Could not load tenant ID. Please try again.');
+        this.loadingTenantId = false;
+      }
     });
   }
 

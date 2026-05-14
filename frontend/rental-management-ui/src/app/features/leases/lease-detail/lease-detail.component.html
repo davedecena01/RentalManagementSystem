@@ -45,7 +45,12 @@
     @if (lease.tenantIdFileUrl) {
       <div class="detail-item">
         <label>Tenant ID</label>
-        <p><a [href]="lease.tenantIdFileUrl" target="_blank" style="color:var(--color-primary)">View document</a></p>
+        <p>
+          <button class="btn btn-secondary" style="font-size:13px;padding:4px 12px"
+                  (click)="viewTenantId()" [disabled]="loadingTenantId">
+            {{ loadingTenantId ? 'Loading…' : 'View document' }}
+          </button>
+        </p>
       </div>
     }
   </div>
