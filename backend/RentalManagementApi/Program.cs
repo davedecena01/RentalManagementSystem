@@ -196,6 +196,7 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseMiddleware<RoleEnrichmentMiddleware>();
 app.UseAuthorization();
+app.UseMiddleware<SecurityEventLoggingMiddleware>();   // after auth so User claims are populated
 app.MapControllers();
 
 app.Run();
