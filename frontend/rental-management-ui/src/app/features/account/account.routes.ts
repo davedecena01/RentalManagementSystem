@@ -10,6 +10,13 @@ export const accountRoutes: Routes = [
         .then(m => m.ProfileComponent)
   },
   {
+    path: 'security',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./security/security.component')
+        .then(m => m.SecurityComponent)
+  },
+  {
     path: 'provision-templates',
     canActivate: [landlordGuard],
     loadComponent: () =>

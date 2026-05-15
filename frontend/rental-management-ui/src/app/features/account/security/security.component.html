@@ -1,0 +1,69 @@
+<div class="page-container">
+  <a routerLink="/account" class="back-link">← Back to Profile</a>
+
+  <div class="form-card">
+    <div class="form-card-header">
+      <h1>Security Settings</h1>
+      <p class="page-subtitle">Manage your account security</p>
+    </div>
+
+    @if (loading) {
+      <p style="color:var(--color-text-muted)">Loading…</p>
+    } @else {
+
+      <div style="margin-bottom:24px">
+        <h2 style="font-size:16px;font-weight:600;margin-bottom:8px">Two-Factor Authentication (2FA)</h2>
+        <p style="font-size:14px;color:var(--color-text-muted);margin-bottom:16px">
+          Add a second layer of security using an authenticator app (Google Authenticator, Authy, etc.).
+        </p>
+
+        @if (isMfaEnabled) {
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+            <span class="status-badge status-active">Enabled</span>
+            <span style="font-size:13px;color:var(--color-text-muted)">Your account is protected with 2FA.</span>
+          </div>
+          <button class="btn btn-secondary" (click)="unenroll()" [disabled]="saving">
+            {{ saving ? 'Disabling…' : 'Disable 2FA' }}
+          </button>
+
+        } @else if (step === 'idle') {
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+            <span class="status-badge status-inactive">Not enabled</span>
+          </div>
+          <button class="btn btn-primary" (click)="startEnroll()" [disabled]="saving">
+            {{ saving ? 'Setting up…' : 'Enable 2FA' }}
+          </button>
+
+        } @else if (step === 'verifying') {
+          <div style="max-width:360px">
+            <p style="font-size:14px;margin-bottom:12px">
+              Scan this QR code with your authenticator app, then enter the 6-digit code to confirm.
+            </p>
+
+            @if (qrCode) {
+              <div style="margin-bottom:16px" [innerHTML]="qrCode"></div>
+            }
+
+            <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:16px">
+              Can't scan? Enter this key manually: <strong>{{ secret }}</strong>
+            </p>
+
+            <div class="form-group">
+              <label for="verifyCode">Verification Code</label>
+              <input id="verifyCode" type="text" inputmode="numeric" maxlength="6"
+                     [(ngModel)]="verifyCode" placeholder="000000" style="letter-spacing:4px" />
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:16px">
+              <button class="btn btn-primary" (click)="verify()" [disabled]="saving || verifyCode.length < 6">
+                {{ saving ? 'Verifying…' : 'Confirm' }}
+              </button>
+              <button class="btn btn-secondary" (click)="cancelEnroll()" [disabled]="saving">Cancel</button>
+            </div>
+          </div>
+        }
+      </div>
+
+    }
+  </div>
+</div>

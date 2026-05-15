@@ -69,4 +69,30 @@ export class AuthService {
   setCurrentUser(user: User) {
     this.currentUser.set(user);
   }
+
+  async getMfaFactors(): Promise<{ id: string; status: string; factorType: string }[]> {
+    const { data, error } = await this.supabase.auth.mfa.listFactors();
+    if (error) throw error;
+    return (data.totp ?? []).map(f => ({ id: f.id, status: f.status, factorType: f.factor_type }));
+  }
+
+  async enrollMfa(): Promise<{ id: string; qrCode: string; secret: string }> {
+    const { data, error } = await this.supabase.auth.mfa.enroll({ factorType: 'totp' });
+    if (error) throw error;
+    return {
+      id: data.id,
+      qrCode: data.totp.qr_code,
+      secret: data.totp.secret
+    };
+  }
+
+  async verifyMfaEnrollment(factorId: string, code: string): Promise<void> {
+    const { error } = await this.supabase.auth.mfa.challengeAndVerify({ factorId, code });
+    if (error) throw error;
+  }
+
+  async unenrollMfa(factorId: string): Promise<void> {
+    const { error } = await this.supabase.auth.mfa.unenroll({ factorId });
+    if (error) throw error;
+  }
 }
