@@ -2,10 +2,11 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 
-type MfaStep = 'idle' | 'enrolling' | 'verifying';
+type MfaStep = 'idle' | 'verifying';
 
 @Component({
   selector: 'app-security',
@@ -16,6 +17,7 @@ type MfaStep = 'idle' | 'enrolling' | 'verifying';
 export class SecurityComponent implements OnInit {
   private auth = inject(AuthService);
   private toast = inject(ToastService);
+  private sanitizer = inject(DomSanitizer);
 
   loading = true;
   saving = false;
@@ -23,7 +25,7 @@ export class SecurityComponent implements OnInit {
 
   enrolledFactors: { id: string; status: string; factorType: string }[] = [];
   pendingFactorId = '';
-  qrCode = '';
+  qrCode: SafeHtml | string = '';
   secret = '';
   verifyCode = '';
 
@@ -46,7 +48,7 @@ export class SecurityComponent implements OnInit {
     try {
       const result = await this.auth.enrollMfa();
       this.pendingFactorId = result.id;
-      this.qrCode = result.qrCode;
+      this.qrCode = this.sanitizer.bypassSecurityTrustHtml(result.qrCode);
       this.secret = result.secret;
       this.step = 'verifying';
     } catch {
@@ -74,6 +76,9 @@ export class SecurityComponent implements OnInit {
   }
 
   cancelEnroll() {
+    if (this.pendingFactorId) {
+      this.auth.unenrollMfa(this.pendingFactorId).catch(() => {});
+    }
     this.step = 'idle';
     this.qrCode = '';
     this.secret = '';
