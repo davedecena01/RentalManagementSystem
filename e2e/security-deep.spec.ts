@@ -199,11 +199,7 @@ test.describe('XSS — stored payloads must render escaped, not execute', () => 
   });
 });
 
-test.describe.skip('F-005 + F-006 regression — once fixed, accept-invite and register must require a valid JWT', () => {
-  /**
-   * These tests are skipped until the fixes land. After applying the fix described
-   * in SECURITY_FINDINGS.md, un-skip and they should pass.
-   */
+test.describe('F-005 + F-006 regression — accept-invite and register must require a valid JWT', () => {
   test('Anonymous /api/auth/register with fabricated SupabaseUserId → 401', async () => {
     const ctx = await apiRequest.newContext();
     const r = await ctx.post(`${API}/api/auth/register`, {

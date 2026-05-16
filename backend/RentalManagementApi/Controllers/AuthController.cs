@@ -12,15 +12,15 @@ namespace RentalManagementApi.Controllers;
 public class AuthController(AuthService authService) : ControllerBase
 {
     [HttpPost("register")]
-    [AllowAnonymous]
+    [Authorize]
     [EnableRateLimiting("auth")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        // If the caller includes a valid JWT, ensure it belongs to the claimed SupabaseUserId.
-        // This prevents fabricated registrations from callers who have a real Supabase session
-        // but claim a different user's ID.
+        // Authoritative identity comes from the Supabase JWT, never the request body.
+        // Body's SupabaseUserId is still validated to match so older clients fail loudly
+        // rather than silently registering against the wrong identity.
         var jwtSub = User.FindFirst("sub")?.Value;
-        if (jwtSub is not null &&
+        if (jwtSub is null ||
             !jwtSub.Equals(request.SupabaseUserId.ToString(), StringComparison.OrdinalIgnoreCase))
         {
             return Unauthorized(new ApiError("Token does not match the requested user ID.", "TOKEN_MISMATCH"));
@@ -55,10 +55,18 @@ public class AuthController(AuthService authService) : ControllerBase
     }
 
     [HttpPost("accept-invite")]
-    [AllowAnonymous]
+    [Authorize]
     [EnableRateLimiting("auth")]
     public async Task<IActionResult> AcceptInvite([FromBody] AcceptInviteRequest request)
     {
+        // Authoritative identity comes from the Supabase JWT, never the request body.
+        var jwtSub = User.FindFirst("sub")?.Value;
+        if (jwtSub is null ||
+            !jwtSub.Equals(request.SupabaseUserId, StringComparison.OrdinalIgnoreCase))
+        {
+            return Unauthorized(new ApiError("Token does not match the requested user ID.", "TOKEN_MISMATCH"));
+        }
+
         try
         {
             var user = await authService.AcceptInviteAsync(request);

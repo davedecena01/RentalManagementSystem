@@ -48,7 +48,7 @@
 - **Repro:** `PUT /api/leases/{id}/provisions` with body `{provisions:[...]}` instead of bare array.
 - **Recommendation:** Add a global ASP.NET exception/validation handler (`InvalidModelStateResponseFactory`) that returns the project's standard `ApiError` shape (`{error, code}`) without framework type names.
 
-### F-005 — Tenant accept-invite trusts SupabaseUserId from request body without JWT validation — **CONFIRMED HIGH**
+### F-005 — Tenant accept-invite trusts SupabaseUserId from request body without JWT validation — **FIXED**
 - **File:** [backend/RentalManagementApi/Controllers/AuthController.cs:57-75](backend/RentalManagementApi/Controllers/AuthController.cs#L57-L75)
 - **Risk:** `POST /api/auth/accept-invite` is `[AllowAnonymous]` and takes `SupabaseUserId` from the request body (`AcceptInviteAsync` parses `Guid.Parse(request.SupabaseUserId)` directly into the User row). Unlike `/api/auth/register`, there is no check that a valid Supabase JWT was presented and that its `sub` claim matches.
 - **Theoretical attack:** Anyone who learns an unused invite `Token` (e.g. from a leaked email, the unauthenticated `GET /api/auth/invite/{token}` endpoint, or log files) can create a Tenant `User` row bound to an attacker-controlled Supabase ID — granting the attacker the tenant account on next login.
@@ -60,7 +60,7 @@
   - Also confirmed: `GET /api/auth/invite/{token}` anonymous returns `{"email":"…"}` — token enumeration leaks emails.
   - Cleanup needed: a junk `User` + `TenantProfile` row exists in the DB from the reproducer (id `492d32c2-da05-43ce-ac51-f576bc9686dc`); recommend deleting after the fix.
 
-### F-006 — Same vulnerability class as F-005 on `/api/auth/register` — **HIGH**
+### F-006 — Same vulnerability class as F-005 on `/api/auth/register` — **FIXED**
 - **File:** [backend/RentalManagementApi/Controllers/AuthController.cs:14-31](backend/RentalManagementApi/Controllers/AuthController.cs#L14-L31)
 - **Issue:** The token-vs-body validation only runs `if (jwtSub is not null)`. When the request includes no JWT at all, the check is silently skipped, even though the endpoint is `[AllowAnonymous]` and accepts `SupabaseUserId` directly from the body.
 - **Verified (this run):** Sent 5 anonymous `POST /api/auth/register` requests with `crypto.randomUUID()` for `supabaseUserId` and junk emails. All 5 returned 200 with a real User row created. (6th onward returned 429 thanks to the existing rate limit — which is good defense-in-depth but does not close the hole.)
@@ -115,5 +115,16 @@
 
 ---
 ## Cleanup Checklist (post-run)
-- [ ] Delete junk User rows in DB: `WHERE email LIKE 'flood-%-%@test.test'` (5 rows from F-006 repro) and `id = '492d32c2-da05-43ce-ac51-f576bc9686dc'` (F-005 repro).
-- [ ] Test landlord and tenant accounts (`landlord-1778957813265@e2e.test` / `tenant-1778957813265@e2e.test`) can be left or deleted as desired.
+- [x] Delete junk User rows in DB: 6 rows removed (5 `flood-%@test.test` from F-006 repro + `492d32c2-…` from F-005 repro). Verified 0 remaining.
+- [ ] Test landlord and tenant accounts (`landlord-1778957813265@e2e.test` / `tenant-1778957813265@e2e.test`, plus `fix-verify-…` and `fix-tenant-…` from the post-fix verification) can be left or deleted as desired.
+
+---
+## Post-fix verification (this branch, `fix/auth-anon-bypass`)
+- **F-005 / F-006 fix:** [AuthController.cs] — `[AllowAnonymous]` → `[Authorize]` on `/register` and `/accept-invite`; JWT-vs-body check is now mandatory (not conditional).
+- **Verified anonymous attacks now blocked:**
+  - `POST /api/auth/register` (no JWT, fabricated `supabaseUserId`) → **401** (was 200)
+  - `POST /api/auth/accept-invite` (no JWT, fabricated `supabaseUserId`) → **401** (was 200)
+- **Verified happy path still works:**
+  - UI registration of fresh landlord `fix-verify-1778966565758@e2e.test` → dashboard, role=Landlord
+  - UI accept-invite for fresh tenant `fix-tenant-1778966583751@e2e.test` → dashboard, role=Tenant
+- **Regression coverage:** [e2e/security-deep.spec.ts] — the two previously-skipped `test.describe.skip(...)` blocks have been un-skipped and now pass.
