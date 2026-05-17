@@ -28,3 +28,28 @@ Thumbs.db
 .idea/
 *.iml
 .vscode/
+
+# E2E test artifacts (Playwright)
+playwright-report/
+test-results/
+.playwright-mcp/
+*.playwright.log
+
+# Ad-hoc screenshots from manual / Playwright test runs
+e2e-*.png
+e2e-tc*.png
+test-[0-9][0-9]-*.png
+design-[0-9][0-9]-*.png
+wave[0-9]*-*.png
+
+# Local backend/frontend dev logs
+backend_out.txt
+backend_err.txt
+ng_out.txt
+ng_err.txt
+jwt_debug.txt
+**/backend_out.txt
+**/backend_err.txt
+**/ng_out.txt
+**/ng_err.txt
+**/jwt_debug.txt
