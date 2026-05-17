@@ -108,13 +108,27 @@ builder.Services.AddAuthorization(options =>
 // ------------------------------------------------------------
 // CORS
 // ------------------------------------------------------------
+// Accepts the canonical FRONTEND_URL, localhost for dev, and any Vercel
+// preview deployment for this project (subdomain pattern can be tuned via
+// VERCEL_PROJECT_PREFIX, defaults to "rental-management-system").
 var frontendUrl = builder.Configuration["FRONTEND_URL"] ?? "http://localhost:4200";
+var vercelPrefix = builder.Configuration["VERCEL_PROJECT_PREFIX"] ?? "rental-management-system";
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
-        policy.WithOrigins(frontendUrl)
-              .AllowAnyHeader()
-              .AllowAnyMethod());
+        policy.SetIsOriginAllowed(origin =>
+        {
+            if (string.IsNullOrEmpty(origin)) return false;
+            if (origin == frontendUrl) return true;
+            if (origin == "http://localhost:4200") return true;
+            if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri)) return false;
+            // Vercel preview deployments: <prefix>-*.vercel.app
+            return uri.Scheme == "https"
+                && uri.Host.StartsWith(vercelPrefix + "-", StringComparison.Ordinal)
+                && uri.Host.EndsWith(".vercel.app", StringComparison.Ordinal);
+        })
+        .AllowAnyHeader()
+        .AllowAnyMethod());
 });
 
 // ------------------------------------------------------------
