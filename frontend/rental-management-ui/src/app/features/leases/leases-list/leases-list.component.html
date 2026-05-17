@@ -1,56 +1,107 @@
-<div class="page-header">
-  <div style="display:flex;align-items:center;justify-content:space-between">
-    <div>
-      <h1>Leases</h1>
-      <p class="page-subtitle">Active and historical lease agreements</p>
-    </div>
-    @if (isLandlord()) {
-      <a routerLink="/leases/new" class="btn btn-primary">+ New Lease</a>
-    }
-  </div>
-</div>
+<div class="page-container">
 
-@if (loading) {
-  <div class="loading">Loading leases…</div>
-} @else if (leases.length === 0) {
-  <div class="empty-state">
-    <p>No leases found.</p>
-    @if (isLandlord()) {
-      <a routerLink="/leases/new" class="btn btn-primary" style="margin-top:16px;display:inline-flex">+ New Lease</a>
+  <section class="page-hero">
+    <div class="ph-inner">
+      <div class="ph-titles">
+        <div class="ph-eyebrow">Contracts</div>
+        <h1>Leases</h1>
+        <p class="ph-sub">Active and historical lease agreements across your portfolio.</p>
+      </div>
+      @if (isLandlord()) {
+        <div class="ph-actions">
+          <a routerLink="/leases/new" class="btn btn-primary">+ New lease</a>
+        </div>
+      }
+    </div>
+
+    @if (!loading && leases.length > 0) {
+      <div class="ph-stats">
+        <div class="ph-stat">
+          <div class="num">{{ leases.length }}</div>
+          <div class="lbl">Total leases</div>
+        </div>
+        <div class="ph-stat">
+          <div class="num">{{ activeCount() }}</div>
+          <div class="lbl">Active</div>
+        </div>
+        <div class="ph-stat">
+          <div class="num"><span class="currency">₱</span>{{ totalMonthly() }}</div>
+          <div class="lbl">Monthly billed</div>
+        </div>
+      </div>
     }
-  </div>
-} @else {
-  <div class="table-card">
-    <table>
-      <thead>
-        <tr>
-          <th>Property</th>
-          <th>Tenant</th>
-          <th>Period</th>
-          <th>Monthly Rent</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (l of leases; track l.id) {
-          <tr>
-            <td><strong>{{ l.propertyName }}</strong><br><small style="color:var(--color-text-muted)">{{ l.propertyAddress }}</small></td>
-            <td>{{ l.tenantName }}<br><small style="color:var(--color-text-muted)">{{ l.tenantEmail }}</small></td>
-            <td>{{ formatDate(l.startDate) }} — {{ formatDate(l.endDate) }}</td>
-            <td>{{ formatMoney(l.monthlyRent) }}</td>
-            <td><span class="badge {{ statusClass(l.status) }}">{{ l.status }}</span></td>
-            <td>
-              <div class="table-actions">
-                <a [routerLink]="['/leases', l.id]" class="btn btn-secondary btn-sm">View</a>
-                @if (isLandlord() && l.status === 'Active') {
-                  <button class="btn btn-danger btn-sm" (click)="terminate(l)">Terminate</button>
-                }
-              </div>
-            </td>
-          </tr>
+  </section>
+
+  @if (loading) {
+    <div class="loading">Loading leases…</div>
+  } @else if (leases.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+          <path d="M14 3v5h5M9 13h6M9 17h4"/>
+        </svg>
+      </div>
+      <h3>No leases yet</h3>
+      <p class="empty-sub">
+        @if (isLandlord()) {
+          Once you assign a tenant to a property, the lease will appear here with its contract terms and payment schedule.
+        } @else {
+          You don't have an active tenancy yet. Once your landlord sets one up, it will appear here.
         }
-      </tbody>
-    </table>
-  </div>
-}
+      </p>
+      @if (isLandlord()) {
+        <a routerLink="/leases/new" class="btn btn-primary">+ New lease</a>
+      }
+    </div>
+  } @else {
+    <div class="table-card">
+      <div class="table-card-head">
+        <div>
+          <h2>All leases</h2>
+          <div class="sub">{{ leases.length }} {{ leases.length === 1 ? 'contract' : 'contracts' }} on file</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Tenant</th>
+            <th>Term</th>
+            <th style="text-align:right">Monthly rent</th>
+            <th>Status</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (l of leases; track l.id) {
+            <tr>
+              <td>
+                <span class="cell-primary">{{ l.propertyName }}</span>
+                <span class="cell-sub">{{ l.propertyAddress }}</span>
+              </td>
+              <td>
+                <span class="cell-primary">{{ l.tenantName }}</span>
+                <span class="cell-sub">{{ l.tenantEmail }}</span>
+              </td>
+              <td>
+                <span class="cell-money" style="font-weight:400">{{ formatDate(l.startDate) }}</span>
+                <span class="cell-sub">→ {{ formatDate(l.endDate) }}</span>
+              </td>
+              <td style="text-align:right" class="cell-money">{{ formatMoney(l.monthlyRent) }}</td>
+              <td><span class="badge {{ statusClass(l.status) }}">{{ l.status }}</span></td>
+              <td style="text-align:right">
+                <div class="table-actions" style="justify-content:flex-end">
+                  <a [routerLink]="['/leases', l.id]" class="btn btn-secondary btn-sm">View</a>
+                  @if (isLandlord() && l.status === 'Active') {
+                    <button class="btn btn-danger btn-sm" (click)="terminate(l)">Terminate</button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

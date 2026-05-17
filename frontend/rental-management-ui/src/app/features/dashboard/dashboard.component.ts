@@ -135,8 +135,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         datasets: [{
           label: 'Income (₱)',
           data: this.data.monthlyIncome.map(p => p.amount),
-          backgroundColor: 'rgba(99, 102, 241, 0.7)',
-          borderRadius: 4
+          backgroundColor: 'rgba(37, 99, 235, 0.85)',
+          borderRadius: 6
         }]
       },
       options: {
@@ -158,8 +158,9 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         labels: ['Paid', 'Partial', 'Unpaid'],
         datasets: [{
           data: [paid, partial, unpaid],
-          backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
-          borderWidth: 2
+          backgroundColor: ['#16a34a', '#d97706', '#dc2626'],
+          borderWidth: 2,
+          borderColor: '#ffffff'
         }]
       },
       options: {
@@ -171,5 +172,10 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   fmt(n: number) {
     return '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 2 });
+  }
+
+  /** Plain numeric formatting (no currency symbol) — symbol is added by the template. */
+  fmtPlain(n: number) {
+    return (n ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   }
 }

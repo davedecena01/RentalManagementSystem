@@ -66,6 +66,35 @@ export class LeaseFormComponent implements OnInit {
     this.oneOffProvisions.splice(index, 1);
   }
 
+  /** Currently selected property (for live summary panel). */
+  selectedProperty(): Property | null {
+    const id = this.form.get('propertyId')?.value;
+    if (!id) return null;
+    return this.properties.find(p => p.id === id) ?? null;
+  }
+
+  /** Months between start and end date (rounded), or null if either is missing. */
+  durationMonths(): number | null {
+    const s = this.form.get('startDate')?.value;
+    const e = this.form.get('endDate')?.value;
+    if (!s || !e) return null;
+    const start = new Date(s);
+    const end = new Date(e);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return null;
+    if (end <= start) return null;
+    const months = (end.getFullYear() - start.getFullYear()) * 12
+                 + (end.getMonth() - start.getMonth());
+    return Math.max(1, months);
+  }
+
+  /** Move-in total = first month rent + deposit + advance. */
+  moveInTotal(): number {
+    const rent = +(this.form.get('monthlyRent')?.value || 0);
+    const dep  = +(this.form.get('depositAmount')?.value || 0);
+    const adv  = +(this.form.get('advanceAmount')?.value || 0);
+    return rent + dep + adv;
+  }
+
   submit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     if (this.uploadingTenantId) { this.toast.error('Please wait for the tenant ID upload to finish.'); return; }

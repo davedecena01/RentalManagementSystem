@@ -1,92 +1,130 @@
-<div class="page-header">
-  <div style="display:flex;align-items:center;justify-content:space-between">
-    <div>
-      <h1>Properties</h1>
-      <p class="page-subtitle">Manage your rental properties</p>
-    </div>
-    <button class="btn btn-primary" (click)="openCreate()">+ Add Property</button>
-  </div>
-</div>
+<div class="page-container">
 
-@if (loading) {
-  <div class="loading">Loading properties…</div>
-} @else if (properties.length === 0) {
-  <div class="empty-state">
-    <p>No properties yet. Add your first property to get started.</p>
-    <button class="btn btn-primary" style="margin-top:16px" (click)="openCreate()">+ Add Property</button>
-  </div>
-} @else {
-  <div class="table-card">
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Address</th>
-          <th>Type</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (p of properties; track p.id) {
+  <section class="page-hero">
+    <div class="ph-inner">
+      <div class="ph-titles">
+        <div class="ph-eyebrow">Portfolio</div>
+        <h1>Properties</h1>
+        <p class="ph-sub">Manage your rental properties — vacant or occupied, by type and status.</p>
+      </div>
+      <div class="ph-actions">
+        <button class="btn btn-primary" (click)="openCreate()">+ Add property</button>
+      </div>
+    </div>
+
+    @if (!loading && properties.length > 0) {
+      <div class="ph-stats">
+        <div class="ph-stat">
+          <div class="num">{{ properties.length }}</div>
+          <div class="lbl">Total properties</div>
+        </div>
+        <div class="ph-stat">
+          <div class="num">{{ occupiedCount() }}</div>
+          <div class="lbl">Occupied</div>
+        </div>
+        <div class="ph-stat">
+          <div class="num">{{ vacantCount() }}</div>
+          <div class="lbl">Vacant</div>
+        </div>
+      </div>
+    }
+  </section>
+
+  @if (loading) {
+    <div class="loading">Loading properties…</div>
+  } @else if (properties.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="3" width="16" height="18" rx="1"/>
+          <path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2M10 21v-3h4v3"/>
+        </svg>
+      </div>
+      <h3>No properties yet</h3>
+      <p class="empty-sub">Add your first property to start onboarding tenants, drafting leases and collecting rent.</p>
+      <button class="btn btn-primary" (click)="openCreate()">+ Add property</button>
+    </div>
+  } @else {
+    <div class="table-card">
+      <div class="table-card-head">
+        <div>
+          <h2>All properties</h2>
+          <div class="sub">{{ properties.length }} {{ properties.length === 1 ? 'property' : 'properties' }} in your portfolio</div>
+        </div>
+      </div>
+      <table>
+        <thead>
           <tr>
-            <td><a [routerLink]="['/properties', p.id]" style="color:var(--color-primary);text-decoration:none;font-weight:500">{{ p.name }}</a></td>
-            <td>{{ p.address }}</td>
-            <td><span class="badge badge-blue">{{ p.type }}</span></td>
-            <td>
-              @if (p.isOccupied) {
-                <span class="badge badge-green">Occupied</span>
-              } @else {
-                <span class="badge badge-gray">Vacant</span>
-              }
-            </td>
-            <td>
-              <div class="table-actions">
-                <button class="btn btn-secondary btn-sm" (click)="openEdit(p)">Edit</button>
-                <button class="btn btn-danger btn-sm" (click)="delete(p)">Delete</button>
-              </div>
-            </td>
+            <th>Property</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th style="text-align:right">Actions</th>
           </tr>
-        }
-      </tbody>
-    </table>
-  </div>
-}
-
-@if (showForm) {
-  <div class="modal-backdrop" (click)="closeForm()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <h2>{{ editTarget ? 'Edit Property' : 'Add Property' }}</h2>
-      <form [formGroup]="form" (ngSubmit)="save()">
-        <div class="form-group">
-          <label>Name *</label>
-          <input formControlName="name" placeholder="e.g. Sunset Apartments Unit 4A" />
-          @if (hasError('name')) { <span class="field-error">Name is required.</span> }
-        </div>
-        <div class="form-group">
-          <label>Address *</label>
-          <input formControlName="address" placeholder="Full address" />
-          @if (hasError('address')) { <span class="field-error">Address is required.</span> }
-        </div>
-        <div class="form-group">
-          <label>Type *</label>
-          <select formControlName="type">
-            @for (t of propertyTypes; track t) {
-              <option [value]="t">{{ t }}</option>
-            }
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Description</label>
-          <textarea formControlName="description" rows="3" placeholder="Optional notes…"></textarea>
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" (click)="closeForm()">Cancel</button>
-          <button type="submit" class="btn btn-primary" [disabled]="saving">
-            {{ saving ? 'Saving…' : (editTarget ? 'Update' : 'Create') }}
-          </button>
-        </div>
-      </form>
+        </thead>
+        <tbody>
+          @for (p of properties; track p.id) {
+            <tr>
+              <td>
+                <a [routerLink]="['/properties', p.id]" class="cell-primary" style="color:var(--color-text);text-decoration:none">{{ p.name }}</a>
+                <span class="cell-sub">{{ p.address }}</span>
+              </td>
+              <td><span class="badge badge-blue">{{ p.type }}</span></td>
+              <td>
+                @if (p.isOccupied) {
+                  <span class="badge badge-green">Occupied</span>
+                } @else {
+                  <span class="badge badge-gray">Vacant</span>
+                }
+              </td>
+              <td style="text-align:right">
+                <div class="table-actions" style="justify-content:flex-end">
+                  <a [routerLink]="['/properties', p.id]" class="btn btn-secondary btn-sm">View</a>
+                  <button class="btn btn-secondary btn-sm" (click)="openEdit(p)">Edit</button>
+                  <button class="btn btn-danger btn-sm" (click)="delete(p)">Delete</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
-  </div>
-}
+  }
+
+  @if (showForm) {
+    <div class="modal-backdrop" (click)="closeForm()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>{{ editTarget ? 'Edit property' : 'Add property' }}</h2>
+        <form [formGroup]="form" (ngSubmit)="save()">
+          <div class="form-group">
+            <label>Name *</label>
+            <input formControlName="name" placeholder="e.g. Sunset Apartments Unit 4A" />
+            @if (hasError('name')) { <span class="field-error">Name is required.</span> }
+          </div>
+          <div class="form-group">
+            <label>Address *</label>
+            <input formControlName="address" placeholder="Full address" />
+            @if (hasError('address')) { <span class="field-error">Address is required.</span> }
+          </div>
+          <div class="form-group">
+            <label>Type *</label>
+            <select formControlName="type">
+              @for (t of propertyTypes; track t) {
+                <option [value]="t">{{ t }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea formControlName="description" rows="3" placeholder="Optional notes…"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeForm()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="saving">
+              {{ saving ? 'Saving…' : (editTarget ? 'Update' : 'Create') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

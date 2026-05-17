@@ -1,85 +1,122 @@
 <div class="page-container">
-  <div class="page-header">
-    <h1>My Account</h1>
-    <p class="page-subtitle">View and update your profile details</p>
-  </div>
+
+  <section class="page-hero">
+    <div class="ph-inner">
+      <div class="ph-titles">
+        <div class="ph-eyebrow">Settings</div>
+        <h1>My Account</h1>
+        <p class="ph-sub">View and update your profile details. Your email is used for sign-in and notifications.</p>
+      </div>
+    </div>
+  </section>
 
   @if (loading) {
     <p style="color:var(--color-text-muted)">Loading profile…</p>
   } @else if (user) {
-    <div class="table-card" style="max-width:520px;padding:28px">
+    <div class="profile-shell">
+      <div class="profile-grid">
 
-      @if (!editing) {
-        <!-- Read-only view -->
-        <div style="display:grid;gap:16px">
-          <div>
-            <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:2px">Full Name</div>
-            <div style="font-weight:600">{{ user.firstName }} {{ user.lastName }}</div>
+        <!-- LEFT: avatar card -->
+        <aside class="profile-card">
+          <div class="pc-head">
+            <div class="profile-avatar">{{ initials() }}</div>
+            <div class="pc-name">{{ user.firstName }} {{ user.lastName }}</div>
+            <div class="pc-role-line">{{ user.role }} · {{ user.email }}</div>
           </div>
-          <div>
-            <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:2px">Email</div>
-            <div>{{ user.email }}</div>
+          <div class="pc-body">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-text-muted);margin-bottom:10px">Quick info</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--color-divider);font-size:13px">
+              <span style="color:var(--color-text-muted)">Role</span>
+              <span class="badge badge-blue">{{ user.role }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--color-divider);font-size:13px">
+              <span style="color:var(--color-text-muted)">Member since</span>
+              <span style="font-weight:500">{{ formatDate(user.createdAt) }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px">
+              <span style="color:var(--color-text-muted)">Account status</span>
+              <span class="badge badge-green">Active</span>
+            </div>
           </div>
-          <div>
-            <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:2px">Phone</div>
-            <div>{{ user.phone || '—' }}</div>
-          </div>
-          <div>
-            <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:2px">Role</div>
-            <div><span class="badge badge-blue">{{ user.role }}</span></div>
-          </div>
-          <div>
-            <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:2px">Member Since</div>
-            <div>{{ formatDate(user.createdAt) }}</div>
-          </div>
-        </div>
+        </aside>
 
-        <div style="margin-top:24px">
-          <button class="btn btn-primary" (click)="startEdit()">Edit Profile</button>
-        </div>
+        <!-- RIGHT: editable form -->
+        <main class="profile-card">
 
-      } @else {
-        <!-- Edit form -->
-        <form [formGroup]="form" (ngSubmit)="save()">
-          <div class="form-group">
-            <label>First Name *</label>
-            <input formControlName="firstName" type="text" />
-            @if (hasError('firstName')) {
-              <span class="field-error">First name is required (max 100 characters).</span>
-            }
-          </div>
+          @if (!editing) {
+            <div class="profile-section">
+              <h2>Profile details</h2>
+              <div class="sub">How you appear to your tenants and team.</div>
 
-          <div class="form-group">
-            <label>Last Name *</label>
-            <input formControlName="lastName" type="text" />
-            @if (hasError('lastName')) {
-              <span class="field-error">Last name is required (max 100 characters).</span>
-            }
-          </div>
+              <div class="profile-kv">
+                <div class="k">Full name</div>
+                <div class="v">{{ user.firstName }} {{ user.lastName }}</div>
 
-          <div class="form-group">
-            <label>Phone</label>
-            <input formControlName="phone" type="tel" placeholder="e.g. +63 912 345 6789" />
-            @if (hasError('phone')) {
-              <span class="field-error">Max 30 characters.</span>
-            }
-          </div>
+                <div class="k">Email</div>
+                <div class="v">{{ user.email }}</div>
 
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" [value]="user.email" disabled style="opacity:0.6;cursor:not-allowed" />
-            <small style="color:var(--color-text-muted)">Email cannot be changed here.</small>
-          </div>
+                <div class="k">Phone</div>
+                <div class="v">{{ user.phone || '—' }}</div>
 
-          <div class="form-actions" style="margin-top:20px">
-            <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
-            <button type="submit" class="btn btn-primary" [disabled]="saving">
-              {{ saving ? 'Saving…' : 'Save Changes' }}
-            </button>
-          </div>
-        </form>
-      }
+                <div class="k">Role</div>
+                <div class="v"><span class="badge badge-blue">{{ user.role }}</span></div>
 
+                <div class="k">Joined</div>
+                <div class="v">{{ formatDate(user.createdAt) }}</div>
+              </div>
+            </div>
+            <div class="profile-section" style="background:var(--color-surface-2)">
+              <button class="btn btn-primary" (click)="startEdit()">Edit profile</button>
+            </div>
+
+          } @else {
+            <form [formGroup]="form" (ngSubmit)="save()">
+              <div class="profile-section">
+                <h2>Edit profile</h2>
+                <div class="sub">Update your personal information. Email cannot be changed here — contact support if you need to.</div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                  <div class="form-group">
+                    <label>First name *</label>
+                    <input formControlName="firstName" type="text" />
+                    @if (hasError('firstName')) {
+                      <span class="field-error">First name is required (max 100 characters).</span>
+                    }
+                  </div>
+                  <div class="form-group">
+                    <label>Last name *</label>
+                    <input formControlName="lastName" type="text" />
+                    @if (hasError('lastName')) {
+                      <span class="field-error">Last name is required (max 100 characters).</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Phone</label>
+                  <input formControlName="phone" type="tel" placeholder="e.g. +63 912 345 6789" />
+                  @if (hasError('phone')) {
+                    <span class="field-error">Max 30 characters.</span>
+                  }
+                </div>
+
+                <div class="form-group">
+                  <label>Email</label>
+                  <input type="email" [value]="user.email" disabled style="opacity:0.6;cursor:not-allowed;background:var(--color-surface-2)" />
+                  <small style="color:var(--color-text-muted)">Email cannot be changed here.</small>
+                </div>
+              </div>
+              <div class="profile-section" style="background:var(--color-surface-2);display:flex;justify-content:flex-end;gap:10px">
+                <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
+                <button type="submit" class="btn btn-primary" [disabled]="saving">
+                  {{ saving ? 'Saving…' : 'Save changes' }}
+                </button>
+              </div>
+            </form>
+          }
+
+        </main>
+      </div>
     </div>
   }
 </div>

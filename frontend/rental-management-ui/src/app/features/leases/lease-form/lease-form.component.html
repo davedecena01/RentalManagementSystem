@@ -1,131 +1,324 @@
 <a routerLink="/leases" class="back-link">← Back to Leases</a>
 
-<div class="page-header"><h1>New Lease</h1><p class="page-subtitle">Assign a tenant to a vacant property</p></div>
+<div class="page-form-shell">
+  <div class="page-header">
+    <div class="page-eyebrow">Leases · New contract</div>
+    <h1>New Lease</h1>
+    <p class="page-subtitle">Assign a tenant to a vacant property, set the rent and add any special clauses. The summary on the right updates as you fill the form.</p>
+  </div>
 
-<div style="max-width:600px">
-  <div class="table-card" style="padding:28px">
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <div class="form-group">
-        <label>Property *</label>
-        <select formControlName="propertyId">
-          <option value="">— Select vacant property —</option>
-          @for (p of properties; track p.id) {
-            <option [value]="p.id">{{ p.name }} ({{ p.address }})</option>
-          }
-        </select>
-        @if (hasError('propertyId')) { <span class="field-error">Property is required.</span> }
-      </div>
-
-      <div class="form-group">
-        <label>Tenant Email *</label>
-        <input formControlName="tenantEmail" type="email" placeholder="tenant@example.com" />
-        <small style="color:var(--color-text-muted)">The tenant must already have a Tenant account.</small>
-        @if (hasError('tenantEmail')) { <span class="field-error">Valid email is required.</span> }
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Start Date *</label>
-          <input formControlName="startDate" type="date" />
-          @if (hasError('startDate')) { <span class="field-error">Required.</span> }
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-layout">
+    <!-- ============ LEFT: form sections ============ -->
+    <div class="form-main">
+      <!-- 1. Property & tenant -->
+      <section class="form-section">
+        <div class="form-section-head">
+          <div class="titles">
+            <h2>Property &amp; tenant</h2>
+            <div class="sub">Pick the vacant property and the tenant who will occupy it. Tenants must already have an account — invite them from <a routerLink="/account/activity" style="color:var(--color-primary-dark);font-weight:500;text-decoration:none">Activity</a> if needed.</div>
+          </div>
+          <span class="step-pill">Step 1 of 4</span>
         </div>
-        <div class="form-group">
-          <label>End Date *</label>
-          <input formControlName="endDate" type="date" />
-          @if (hasError('endDate')) { <span class="field-error">Required.</span> }
-        </div>
-      </div>
 
-      <div class="form-group">
-        <label>Monthly Rent (₱) *</label>
-        <input formControlName="monthlyRent" type="number" min="1" placeholder="e.g. 15000" />
-        @if (hasError('monthlyRent')) { <span class="field-error">Monthly rent is required.</span> }
-      </div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Property <span style="color:var(--color-error)">*</span></label>
+            <select formControlName="propertyId">
+              <option value="">— Select vacant property —</option>
+              @for (p of properties; track p.id) {
+                <option [value]="p.id">{{ p.name }} — {{ p.address }}</option>
+              }
+            </select>
+            @if (hasError('propertyId')) { <span class="field-error">Property is required.</span> }
+            @if (properties.length === 0) {
+              <small>No vacant properties available. Add a new property or end an existing lease first.</small>
+            }
+          </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label>Deposit Amount (₱)</label>
-          <input formControlName="depositAmount" type="number" min="0" />
+          <div class="form-group full">
+            <label>Tenant email <span style="color:var(--color-error)">*</span></label>
+            <input formControlName="tenantEmail" type="email" placeholder="tenant@example.com" />
+            <small>The tenant must already have a Tenant account in RentalPM.</small>
+            @if (hasError('tenantEmail')) { <span class="field-error">Valid email is required.</span> }
+          </div>
         </div>
-        <div class="form-group">
-          <label>Advance Amount (₱)</label>
-          <input formControlName="advanceAmount" type="number" min="0" />
-        </div>
-      </div>
+      </section>
 
-      <!-- Tenant ID Upload -->
-      <div style="border-top:1px solid var(--color-border);padding-top:20px;margin-top:8px">
-        <h3 style="font-size:14px;font-weight:600;margin-bottom:4px">Tenant ID (optional)</h3>
-        <p style="font-size:13px;color:var(--color-text-muted);margin-bottom:12px">Upload a scanned copy of the tenant's government-issued ID.</p>
+      <!-- 2. Lease term -->
+      <section class="form-section">
+        <div class="form-section-head">
+          <div class="titles">
+            <h2>Lease term</h2>
+            <div class="sub">Start and end dates of the contract. End must be after start.</div>
+          </div>
+          <span class="step-pill">Step 2 of 4</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Start date <span style="color:var(--color-error)">*</span></label>
+            <input formControlName="startDate" type="date" />
+            @if (hasError('startDate')) { <span class="field-error">Required.</span> }
+          </div>
+          <div class="form-group">
+            <label>End date <span style="color:var(--color-error)">*</span></label>
+            <input formControlName="endDate" type="date" />
+            @if (hasError('endDate')) { <span class="field-error">Required.</span> }
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Financials -->
+      <section class="form-section">
+        <div class="form-section-head">
+          <div class="titles">
+            <h2>Financials</h2>
+            <div class="sub">Set monthly rent. Deposit is typically 2 months refundable; advance is 1 month applied to the final billing period.</div>
+          </div>
+          <span class="step-pill">Step 3 of 4</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Monthly rent <span style="color:var(--color-error)">*</span></label>
+            <div class="input-prefix">
+              <span class="prefix">₱</span>
+              <input formControlName="monthlyRent" type="number" min="1" placeholder="e.g. 15000" />
+            </div>
+            @if (hasError('monthlyRent')) { <span class="field-error">Monthly rent is required.</span> }
+          </div>
+
+          <div class="form-group">
+            <label>Deposit amount</label>
+            <div class="input-prefix">
+              <span class="prefix">₱</span>
+              <input formControlName="depositAmount" type="number" min="0" />
+            </div>
+            <small>Refundable on move-out, subject to inspection.</small>
+          </div>
+          <div class="form-group">
+            <label>Advance amount</label>
+            <div class="input-prefix">
+              <span class="prefix">₱</span>
+              <input formControlName="advanceAmount" type="number" min="0" />
+            </div>
+            <small>Applied to the final month of the contract.</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Tenant ID upload -->
+      <section class="form-section">
+        <div class="form-section-head">
+          <div class="titles">
+            <h2>Tenant identity document <span style="font-size:12px;color:var(--color-text-muted);font-weight:500;margin-left:6px">(optional)</span></h2>
+            <div class="sub">Upload a scanned copy of the tenant's government-issued ID. JPG, PNG, WebP or PDF · max 5 MB.</div>
+          </div>
+          <span class="step-pill" style="background:var(--color-surface-3);color:var(--color-text-muted);border-color:var(--color-border)">Optional</span>
+        </div>
 
         @if (!tenantIdFile) {
-          <label class="btn btn-secondary" style="cursor:pointer;font-size:13px;display:inline-block">
-            Choose File
-            <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" (change)="onTenantIdSelect($event)" style="display:none" />
-          </label>
+          <div class="file-drop">
+            <div class="drop-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <path d="M17 8l-5-5-5 5"/>
+                <path d="M12 3v12"/>
+              </svg>
+            </div>
+            <div class="drop-title">Upload tenant ID</div>
+            <div class="drop-sub">Drop a file here, or browse from your device</div>
+            <label class="browse-btn">
+              Choose file
+              <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" (change)="onTenantIdSelect($event)" style="display:none" />
+            </label>
+          </div>
         } @else {
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             @if (uploadingTenantId) {
-              <span style="font-size:13px;color:var(--color-text-muted)">Uploading…</span>
+              <div class="file-pill" style="background:var(--color-surface-3);color:var(--color-text-muted);border-color:var(--color-border)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                Uploading… {{ tenantIdFile.name }}
+              </div>
             } @else if (tenantIdFileUrl) {
-              <span style="font-size:13px;color:var(--color-success,#16a34a)">✓ {{ tenantIdFile.name }}</span>
-              <a [href]="tenantIdFileUrl" target="_blank" style="font-size:12px">Preview</a>
+              <div class="file-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                {{ tenantIdFile.name }}
+                <span class="x" (click)="clearTenantId()" title="Remove">×</span>
+              </div>
+              <a [href]="tenantIdFileUrl" target="_blank" class="link-subtle" style="color:var(--color-primary-dark);font-weight:500;text-decoration:none">Preview ↗</a>
             } @else {
-              <span style="font-size:13px;color:var(--color-danger,#dc2626)">Upload failed</span>
+              <div class="file-pill" style="background:var(--color-error-soft);color:var(--color-error);border-color:#fca5a5">
+                ✕ Upload failed — {{ tenantIdFile.name }}
+                <span class="x" (click)="clearTenantId()" title="Remove">×</span>
+              </div>
             }
-            <button type="button" class="btn btn-secondary" style="padding:2px 10px;font-size:12px" (click)="clearTenantId()">Remove</button>
           </div>
         }
-      </div>
+      </section>
 
-      <!-- Special Provisions -->
-      <div style="border-top:1px solid var(--color-border);padding-top:20px;margin-top:8px">
-        <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">Special Provisions (optional)</h3>
+      <!-- 5. Special provisions -->
+      <section class="form-section">
+        <div class="form-section-head">
+          <div class="titles">
+            <h2>Special provisions <span style="font-size:12px;color:var(--color-text-muted);font-weight:500;margin-left:6px">(optional)</span></h2>
+            <div class="sub">Reusable clauses from your clause library, plus one-off provisions specific to this lease. They'll appear in the printed contract.</div>
+          </div>
+          <span class="step-pill">Step 4 of 4</span>
+        </div>
 
         @if (templates.length > 0) {
-          <p style="font-size:13px;color:var(--color-text-muted);margin-bottom:8px">Select from your clause library:</p>
+          <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-text-muted);margin-bottom:10px">From clause library</div>
           @for (t of templates; track t.id) {
-            <label style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;cursor:pointer">
-              <input type="checkbox"
-                     [checked]="selectedTemplateIds.has(t.id)"
-                     (change)="toggleTemplate(t.id)"
-                     style="margin-top:3px;width:16px;height:16px" />
-              <span>
-                <strong>{{ t.title }}</strong>
-                <span style="display:block;font-size:12px;color:var(--color-text-muted)">{{ t.body }}</span>
+            <label class="provision-checkbox" [class.is-checked]="selectedTemplateIds.has(t.id)">
+              <input type="checkbox" [checked]="selectedTemplateIds.has(t.id)" (change)="toggleTemplate(t.id)" />
+              <span class="pc-body">
+                <span class="pc-title">{{ t.title }}</span>
+                <span class="pc-text">{{ t.body }}</span>
               </span>
             </label>
           }
+        } @else {
+          <div style="background:var(--color-surface-2);border:1px dashed var(--color-border-strong);border-radius:var(--radius);padding:14px;font-size:12.5px;color:var(--color-text-muted);text-align:center;margin-bottom:10px">
+            No clauses in your library yet. <a routerLink="/account/provision-templates" style="color:var(--color-primary-dark);font-weight:500;text-decoration:none">Build your clause library →</a>
+          </div>
         }
 
         @if (oneOffProvisions.length > 0) {
-          <p style="font-size:13px;color:var(--color-text-muted);margin:12px 0 8px">One-off provisions:</p>
+          <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-text-muted);margin:18px 0 10px">One-off provisions for this lease</div>
           @for (p of oneOffProvisions; track $index) {
-            <div style="background:var(--color-bg-subtle,#f8f9fa);border-radius:6px;padding:12px;margin-bottom:8px">
-              <div class="form-group" style="margin-bottom:8px">
-                <input [(ngModel)]="p.title" [ngModelOptions]="{standalone: true}"
-                       type="text" placeholder="Provision title" />
+            <div class="provision-card">
+              <div class="pc-head">
+                <span style="font-weight:600;color:var(--color-text-2)">Custom clause #{{ $index + 1 }}</span>
+                <button type="button" class="btn btn-danger btn-sm" (click)="removeOneOff($index)">Remove</button>
               </div>
-              <div class="form-group" style="margin-bottom:8px">
-                <textarea [(ngModel)]="p.body" [ngModelOptions]="{standalone: true}"
-                          rows="2" placeholder="Clause text…" style="width:100%;resize:vertical"></textarea>
-              </div>
-              <button type="button" class="btn btn-danger" style="padding:2px 10px;font-size:12px"
-                      (click)="removeOneOff($index)">Remove</button>
+              <input [(ngModel)]="p.title" [ngModelOptions]="{standalone: true}" type="text" placeholder="Clause title (e.g. No Karaoke)" />
+              <textarea [(ngModel)]="p.body" [ngModelOptions]="{standalone: true}" rows="3" placeholder="Full clause text… (e.g. 'Tenant agrees not to operate karaoke equipment within the premises after 9 PM.')"></textarea>
             </div>
           }
         }
 
-        <button type="button" class="btn btn-secondary" style="font-size:13px;margin-top:4px"
-                (click)="addOneOff()">+ Add one-off provision</button>
-      </div>
-
-      <div class="modal-actions" style="margin-top:20px">
-        <a routerLink="/leases" class="btn btn-secondary">Cancel</a>
-        <button type="submit" class="btn btn-primary" [disabled]="saving">
-          {{ saving ? 'Creating…' : 'Create Lease' }}
+        <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px" (click)="addOneOff()">
+          + Add one-off provision
         </button>
+      </section>
+
+      <!-- Actions -->
+      <div class="form-actions-bar">
+        <div class="left-hint">All required fields must be filled before creating the lease.</div>
+        <div class="actions">
+          <a routerLink="/leases" class="btn btn-secondary">Cancel</a>
+          <button type="submit" class="btn btn-primary" [disabled]="saving">
+            {{ saving ? 'Creating lease…' : 'Create lease' }}
+          </button>
+        </div>
       </div>
-    </form>
-  </div>
+    </div>
+
+    <!-- ============ RIGHT: live summary ============ -->
+    <aside class="form-summary">
+      <div class="fs-head">
+        <h3>Lease summary</h3>
+        <div class="sub">Live preview — updates as you fill the form.</div>
+      </div>
+      <div class="fs-body">
+
+        <div class="fs-section-label">Property</div>
+        <div class="fs-row">
+          <span class="lbl">Selected</span>
+          @if (selectedProperty()) {
+            <span class="val">{{ selectedProperty()!.name }}</span>
+          } @else {
+            <span class="val placeholder">Not selected</span>
+          }
+        </div>
+        @if (selectedProperty()) {
+          <div class="fs-row">
+            <span class="lbl">Address</span>
+            <span class="val" style="font-weight:400;color:var(--color-text-muted);font-size:12px">{{ selectedProperty()!.address }}</span>
+          </div>
+          <div class="fs-row">
+            <span class="lbl">Type</span>
+            <span class="val" style="font-weight:400">{{ selectedProperty()!.type }}</span>
+          </div>
+        }
+
+        <div class="fs-section-label">Tenant</div>
+        <div class="fs-row">
+          <span class="lbl">Email</span>
+          @if (form.get('tenantEmail')?.value) {
+            <span class="val" style="font-weight:400;font-size:12px">{{ form.get('tenantEmail')?.value }}</span>
+          } @else {
+            <span class="val placeholder">Not provided</span>
+          }
+        </div>
+
+        <div class="fs-section-label">Term</div>
+        <div class="fs-row">
+          <span class="lbl">Starts</span>
+          @if (form.get('startDate')?.value) {
+            <span class="val">{{ form.get('startDate')?.value | date:'mediumDate' }}</span>
+          } @else {
+            <span class="val placeholder">—</span>
+          }
+        </div>
+        <div class="fs-row">
+          <span class="lbl">Ends</span>
+          @if (form.get('endDate')?.value) {
+            <span class="val">{{ form.get('endDate')?.value | date:'mediumDate' }}</span>
+          } @else {
+            <span class="val placeholder">—</span>
+          }
+        </div>
+        @if (durationMonths() != null) {
+          <div class="fs-row">
+            <span class="lbl">Duration</span>
+            <span class="val">{{ durationMonths() }} months</span>
+          </div>
+        }
+
+        <div class="fs-section-label">Financials</div>
+        <div class="fs-row">
+          <span class="lbl">Monthly rent</span>
+          <span class="val">{{ (form.get('monthlyRent')?.value || 0) | currency:'PHP':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+        <div class="fs-row">
+          <span class="lbl">Deposit</span>
+          <span class="val">{{ (form.get('depositAmount')?.value || 0) | currency:'PHP':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+        <div class="fs-row">
+          <span class="lbl">Advance</span>
+          <span class="val">{{ (form.get('advanceAmount')?.value || 0) | currency:'PHP':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+        <div class="fs-row total">
+          <span class="lbl">Total move-in</span>
+          <span class="val">{{ moveInTotal() | currency:'PHP':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+
+        <div class="fs-section-label">Provisions</div>
+        <div class="fs-row">
+          <span class="lbl">From library</span>
+          <span class="val">{{ selectedTemplateIds.size }} selected</span>
+        </div>
+        <div class="fs-row">
+          <span class="lbl">One-off</span>
+          <span class="val">{{ oneOffProvisions.length }} added</span>
+        </div>
+
+        <div class="fs-tip">
+          <span class="tip-ic">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4M12 8h.01"/>
+            </svg>
+          </span>
+          <span>
+            On <strong>Create lease</strong>, RentalPM will mark the property as occupied,
+            schedule monthly rent invoices and email the tenant a copy of the contract.
+          </span>
+        </div>
+
+      </div>
+    </aside>
+  </form>
 </div>

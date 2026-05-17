@@ -33,6 +33,17 @@ export class LeasesListComponent implements OnInit {
     });
   }
 
+  /** Count of active leases (for hero stats). */
+  activeCount() { return this.leases.filter(l => l.status === 'Active').length; }
+
+  /** Total monthly rent across all active leases (no currency symbol — template adds ₱). */
+  totalMonthly() {
+    const sum = this.leases
+      .filter(l => l.status === 'Active')
+      .reduce((s, l) => s + (l.monthlyRent || 0), 0);
+    return sum.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
   terminate(lease: Lease) {
     if (!confirm(`Terminate lease for "${lease.propertyName}"? This cannot be undone.`)) return;
     this.api.terminateLease(lease.id).subscribe({

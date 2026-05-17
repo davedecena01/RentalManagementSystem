@@ -3,43 +3,114 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-brand">
-        <span>RentalPM</span>
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+            <rect x="1.5" y="1.5" width="29" height="29" rx="7" fill="#2563eb"/>
+            <path d="M7 22V12l9-6 9 6v10" stroke="#fff" stroke-width="1.7" stroke-linejoin="round" fill="none"/>
+            <path d="M12 22V15h8v7" stroke="#fff" stroke-width="1.7" stroke-linejoin="round" fill="none"/>
+            <circle cx="16" cy="18.5" r="0.9" fill="#fff"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <span>RentalPM</span>
+          <span class="brand-sub">Property Ops</span>
+        </span>
       </div>
 
+      <div class="sidebar-section-label">Workspace</div>
       <nav class="sidebar-nav">
         <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">&#9732;</span> Dashboard
+          <span class="nav-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="9" rx="1"/>
+              <rect x="14" y="3" width="7" height="5" rx="1"/>
+              <rect x="14" y="12" width="7" height="9" rx="1"/>
+              <rect x="3" y="16" width="7" height="5" rx="1"/>
+            </svg>
+          </span>
+          Dashboard
         </a>
 
         @if (user()?.role === 'Landlord') {
           <a routerLink="/properties" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">&#8962;</span> Properties
+            <span class="nav-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="3" width="16" height="18" rx="1"/>
+                <path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2M10 21v-3h4v3"/>
+              </svg>
+            </span>
+            Properties
           </a>
           <a routerLink="/leases" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">&#128196;</span> Leases
+            <span class="nav-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+                <path d="M14 3v5h5M9 13h6M9 17h4"/>
+              </svg>
+            </span>
+            Leases
           </a>
           <a routerLink="/account/provision-templates" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">&#128221;</span> Clause Library
+            <span class="nav-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+            </span>
+            Clause Library
           </a>
         }
 
         <a routerLink="/payments" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">&#36;</span> Payments
+          <span class="nav-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 3v18l3-2 2.5 2 3-2 2.5 2 3-2V3z"/>
+              <path d="M8 8h8M8 12h8M8 16h5"/>
+            </svg>
+          </span>
+          Payments
         </a>
         <a routerLink="/maintenance" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">&#128295;</span> Maintenance
+          <span class="nav-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14.7 6.3a4 4 0 1 0 5.4 5.4L14.5 17.3a2 2 0 0 1-2.8 0L6.7 12.3a2 2 0 0 1 0-2.8z"/>
+              <path d="M14.5 6.5l3 3"/>
+            </svg>
+          </span>
+          Maintenance
         </a>
       </nav>
 
+      <div class="sidebar-section-label">Account</div>
       <div class="sidebar-footer">
         <a routerLink="/account" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">
-          <span class="nav-icon">&#128100;</span> Account
+          <span class="nav-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </span>
+          Account
         </a>
         <a routerLink="/account/security" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">&#128274;</span> Security
+          <span class="nav-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </span>
+          Security
         </a>
         <button class="nav-item nav-btn" (click)="signOut()">
-          <span class="nav-icon">&#8594;</span> Sign out
+          <span class="nav-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <path d="M16 17l5-5-5-5M21 12H9"/>
+            </svg>
+          </span>
+          Sign out
         </button>
       </div>
     </aside>

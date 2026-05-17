@@ -44,6 +44,11 @@ export class PropertiesListComponent implements OnInit {
     });
   }
 
+  /** Count of occupied properties (for hero stats). */
+  occupiedCount() { return this.properties.filter(p => p.isOccupied).length; }
+  /** Count of vacant properties (for hero stats). */
+  vacantCount()   { return this.properties.filter(p => !p.isOccupied).length; }
+
   openCreate() {
     this.editTarget = null;
     this.form.reset({ type: 'Apartment' });

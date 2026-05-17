@@ -56,6 +56,24 @@ export class PaymentsListComponent implements OnInit {
     });
   }
 
+  /** Apply a status filter from the filter-chip UI. */
+  setStatusFilter(s: string) {
+    this.statusFilter = s;
+    this.load();
+  }
+
+  /** Sum of amount paid across all listed payments — plain, no currency symbol. */
+  totalPaidPlain() {
+    const sum = this.payments.reduce((s, p) => s + (p.amountPaid || 0), 0);
+    return sum.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
+  /** Outstanding (due minus paid) across all listed payments — plain. */
+  totalOutstandingPlain() {
+    const sum = this.payments.reduce((s, p) => s + Math.max(0, (p.amountDue || 0) - (p.amountPaid || 0)), 0);
+    return sum.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
   payWithStripe(p: Payment) {
     this.api.createStripeCheckout(p.leaseId).subscribe({
       next: (res) => window.location.href = res.checkoutUrl,
