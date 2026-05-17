@@ -2,101 +2,287 @@
   <app-onboarding-wizard (dismissed)="onWizardDismissed($event)" />
 }
 
-<div class="page-header">
-  <div>
-    <h1>Dashboard</h1>
-    @if (user()) {
-      <p class="page-subtitle">Welcome back, {{ user()!.firstName }}.</p>
-    }
-  </div>
-</div>
+<div class="page-container">
 
-@if (loading) {
-  <div class="loading">Loading dashboard…</div>
-} @else if (data) {
-  @if (isLandlord()) {
-    @if (data.totalProperties === 0) {
-      <div class="table-card" style="padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px">
-        <span style="font-size:14px;color:var(--color-text-muted)">No properties yet. Explore the app with sample data?</span>
-        <button class="btn btn-secondary" style="font-size:13px;white-space:nowrap"
-                (click)="loadDemoData()" [disabled]="seedingDemo">
-          {{ seedingDemo ? 'Loading…' : 'Load Demo Data' }}
-        </button>
+  <!-- Signature hero banner -->
+  <section class="page-hero">
+    <div class="ph-inner">
+      <div class="ph-titles">
+        <div class="ph-eyebrow">Workspace · Overview</div>
+        <h1>
+          @if (user()) {
+            Welcome back, <em>{{ user()!.firstName }}</em>.
+          } @else {
+            Welcome back.
+          }
+        </h1>
+        <p class="ph-sub">
+          @if (isLandlord()) {
+            A live snapshot of your portfolio — properties, rent collection and open work in one place.
+          } @else {
+            A live snapshot of your tenancy — what's due, what's paid, and any open requests.
+          }
+        </p>
       </div>
-    }
-    <div class="metric-grid">
-      <div class="metric-card">
-        <span class="metric-label">Properties</span>
-        <span class="metric-value">{{ data.totalProperties }}</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-label">Occupied</span>
-        <span class="metric-value">{{ data.occupiedProperties }}</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-label">Vacant</span>
-        <span class="metric-value">{{ data.vacantProperties }}</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-label">Monthly Rent</span>
-        <span class="metric-value" style="font-size:1.2rem">{{ fmt(data.totalMonthlyRent) }}</span>
-      </div>
-      <div class="metric-card" [class.metric-card--alert]="data.totalUnpaidRent > 0">
-        <span class="metric-label">Unpaid Rent</span>
-        <span class="metric-value" style="font-size:1.2rem">{{ fmt(data.totalUnpaidRent) }}</span>
-      </div>
-      <div class="metric-card" [class.metric-card--alert]="data.openMaintenanceCount > 0">
-        <span class="metric-label">Open Maintenance</span>
-        <span class="metric-value">{{ data.openMaintenanceCount }}</span>
-      </div>
-    </div>
-  } @else {
-    <div class="metric-grid">
-      <div class="metric-card">
-        <span class="metric-label">Monthly Rent</span>
-        <span class="metric-value" style="font-size:1.2rem">{{ fmt(data.totalMonthlyRent) }}</span>
-      </div>
-      <div class="metric-card" [class.metric-card--alert]="data.totalUnpaidRent > 0">
-        <span class="metric-label">Amount Due</span>
-        <span class="metric-value" style="font-size:1.2rem">{{ fmt(data.totalUnpaidRent) }}</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-label">Paid Months</span>
-        <span class="metric-value">{{ data.paymentBreakdown.paid }}</span>
-      </div>
-    </div>
-  }
-
-  <div class="charts-grid">
-    @if (data.monthlyIncome.length > 0) {
-      <div class="chart-card">
-        <h3>Monthly Income</h3>
-        <canvas #incomeChart></canvas>
-      </div>
-    }
-    @if (data.paymentBreakdown.paid + data.paymentBreakdown.partial + data.paymentBreakdown.unpaid > 0) {
-      <div class="chart-card">
-        <h3>Payment Status</h3>
-        <canvas #breakdownChart></canvas>
-      </div>
-    }
-  </div>
-
-  @if (isLandlord() && recentLogs.length > 0) {
-    <div class="table-card" style="margin-top:24px">
-      <div style="padding:16px 20px;border-bottom:1px solid var(--color-border);display:flex;align-items:center;justify-content:space-between">
-        <h2 style="font-size:16px;font-weight:600;margin:0">Recent Activity</h2>
-        <a routerLink="/account/activity" class="btn btn-secondary" style="font-size:13px;padding:4px 12px">View all</a>
-      </div>
-      @for (log of recentLogs; track log.id) {
-        <div style="padding:12px 20px;border-bottom:1px solid var(--color-border);display:flex;gap:12px;align-items:flex-start">
-          <span style="font-size:18px;line-height:1.4">{{ iconFor(log.entityType) }}</span>
-          <div>
-            <div style="font-size:14px">{{ log.description }}</div>
-            <div style="font-size:12px;color:var(--color-text-muted);margin-top:2px">{{ relativeTime(log.createdAt) }}</div>
-          </div>
+      @if (isLandlord() && data && data.totalProperties > 0) {
+        <div class="ph-actions">
+          <a routerLink="/leases/new" class="btn btn-primary">+ New lease</a>
+          <a routerLink="/properties" class="btn btn-secondary">Manage properties</a>
         </div>
       }
     </div>
+
+    @if (data && isLandlord() && data.totalProperties > 0) {
+      <div class="ph-stats">
+        <div class="ph-stat">
+          <div class="num">{{ data.totalProperties }}</div>
+          <div class="lbl">Properties</div>
+        </div>
+        <div class="ph-stat">
+          <div class="num">{{ data.occupiedProperties }}<span class="unit">/ {{ data.totalProperties }}</span></div>
+          <div class="lbl">Occupied</div>
+        </div>
+        <div class="ph-stat">
+          <div class="num"><span class="currency">₱</span>{{ fmtPlain(data.totalMonthlyRent) }}</div>
+          <div class="lbl">Monthly billed</div>
+        </div>
+        <div class="ph-stat">
+          <div class="num"><span class="currency">₱</span>{{ fmtPlain(data.totalUnpaidRent) }}</div>
+          <div class="lbl">Outstanding</div>
+        </div>
+        <div class="ph-stat">
+          <div class="num">{{ data.openMaintenanceCount }}</div>
+          <div class="lbl">Open tickets</div>
+        </div>
+      </div>
+    }
+  </section>
+
+  @if (loading) {
+    <div class="loading">Loading dashboard…</div>
+  } @else if (data) {
+
+    @if (isLandlord() && data.totalProperties === 0) {
+      <div class="empty-state" style="margin-bottom:24px">
+        <div class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="3" width="16" height="18" rx="1"/>
+            <path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2M10 21v-3h4v3"/>
+          </svg>
+        </div>
+        <h3>No properties yet</h3>
+        <p class="empty-sub">Add your first property to start tracking leases, payments and maintenance — or try the app with sample data.</p>
+        <div style="display:inline-flex;gap:10px">
+          <a routerLink="/properties" class="btn btn-primary">+ Add property</a>
+          <button class="btn btn-secondary" (click)="loadDemoData()" [disabled]="seedingDemo">
+            {{ seedingDemo ? 'Loading…' : 'Load demo data' }}
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Metric grid -->
+    @if (isLandlord() && data.totalProperties > 0) {
+      <div class="sec-head" style="margin-top:8px">
+        <div>
+          <h2>Key metrics</h2>
+          <div class="sub">Live indicators of portfolio health</div>
+        </div>
+      </div>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="mc-head">
+            <span class="mc-ic">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="3" width="16" height="18" rx="1"/>
+                <path d="M8 7h2M14 7h2M8 11h2M14 11h2M10 21v-3h4v3"/>
+              </svg>
+            </span>
+          </div>
+          <div class="mc-value">{{ data.totalProperties }}</div>
+          <div class="mc-label">Total properties</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="mc-head">
+            <span class="mc-ic green">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"/>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+              </svg>
+            </span>
+          </div>
+          <div class="mc-value">{{ data.occupiedProperties }}<span style="font-size:13px;color:var(--color-text-muted);margin-left:6px">/ {{ data.totalProperties }}</span></div>
+          <div class="mc-label">Occupied</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="mc-head">
+            <span class="mc-ic gray">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/>
+                <path d="M9 22V12h6v10"/>
+              </svg>
+            </span>
+          </div>
+          <div class="mc-value">{{ data.vacantProperties }}</div>
+          <div class="mc-label">Vacant units</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="mc-head">
+            <span class="mc-ic">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="6" width="20" height="12" rx="2"/>
+                <circle cx="12" cy="12" r="2.5"/>
+                <path d="M6 9v.01M18 15v.01"/>
+              </svg>
+            </span>
+          </div>
+          <div class="mc-value compact"><span class="currency">₱</span>{{ fmtPlain(data.totalMonthlyRent) }}</div>
+          <div class="mc-label">Monthly rent billed</div>
+        </div>
+
+        <div class="metric-card" [class.alert]="data.totalUnpaidRent > 0">
+          <div class="mc-head">
+            <span class="mc-ic" [class.red]="data.totalUnpaidRent > 0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 8v5M12 16v.01"/>
+              </svg>
+            </span>
+          </div>
+          <div class="mc-value compact"><span class="currency">₱</span>{{ fmtPlain(data.totalUnpaidRent) }}</div>
+          <div class="mc-label">Outstanding rent</div>
+        </div>
+
+        <div class="metric-card" [class.alert]="data.openMaintenanceCount > 0">
+          <div class="mc-head">
+            <span class="mc-ic" [class.amber]="data.openMaintenanceCount > 0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.7 6.3a4 4 0 1 0 5.4 5.4L14.5 17.3a2 2 0 0 1-2.8 0L6.7 12.3a2 2 0 0 1 0-2.8z"/>
+                <path d="M14.5 6.5l3 3"/>
+              </svg>
+            </span>
+          </div>
+          <div class="mc-value">{{ data.openMaintenanceCount }}</div>
+          <div class="mc-label">Open maintenance</div>
+        </div>
+      </div>
+    } @else if (!isLandlord()) {
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="mc-head">
+            <span class="mc-ic">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="6" width="20" height="12" rx="2"/>
+                <circle cx="12" cy="12" r="2.5"/>
+              </svg>
+            </span>
+          </div>
+          <div class="mc-value compact"><span class="currency">₱</span>{{ fmtPlain(data.totalMonthlyRent) }}</div>
+          <div class="mc-label">Monthly rent</div>
+        </div>
+        <div class="metric-card" [class.alert]="data.totalUnpaidRent > 0">
+          <div class="mc-head">
+            <span class="mc-ic" [class.red]="data.totalUnpaidRent > 0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 8v5M12 16v.01"/>
+              </svg>
+            </span>
+          </div>
+          <div class="mc-value compact"><span class="currency">₱</span>{{ fmtPlain(data.totalUnpaidRent) }}</div>
+          <div class="mc-label">Amount due</div>
+        </div>
+        <div class="metric-card">
+          <div class="mc-head">
+            <span class="mc-ic green">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"/>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+              </svg>
+            </span>
+          </div>
+          <div class="mc-value">{{ data.paymentBreakdown.paid }}</div>
+          <div class="mc-label">Paid months</div>
+        </div>
+      </div>
+    }
+
+    <!-- Charts -->
+    @if (data.monthlyIncome.length > 0 || (data.paymentBreakdown.paid + data.paymentBreakdown.partial + data.paymentBreakdown.unpaid > 0)) {
+      <div class="sec-head" style="margin-top:24px">
+        <div>
+          <h2>Income &amp; collection</h2>
+          <div class="sub">Last 12 months of rent activity</div>
+        </div>
+      </div>
+      <div class="charts-grid">
+        @if (data.monthlyIncome.length > 0) {
+          <div class="chart-card">
+            <div class="chart-head">
+              <div>
+                <h3>Monthly Income</h3>
+                <div class="sub">Collected rent, by month</div>
+              </div>
+            </div>
+            <canvas #incomeChart></canvas>
+          </div>
+        }
+        @if (data.paymentBreakdown.paid + data.paymentBreakdown.partial + data.paymentBreakdown.unpaid > 0) {
+          <div class="chart-card">
+            <div class="chart-head">
+              <div>
+                <h3>Payment Status</h3>
+                <div class="sub">Breakdown of all invoices</div>
+              </div>
+            </div>
+            <canvas #breakdownChart></canvas>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Activity -->
+    @if (isLandlord() && recentLogs.length > 0) {
+      <div class="table-card" style="margin-top:24px">
+        <div class="table-card-head">
+          <div>
+            <h2>Recent activity</h2>
+            <div class="sub">Latest actions across your portfolio</div>
+          </div>
+          <a routerLink="/account/activity" class="btn btn-secondary btn-sm">View all activity →</a>
+        </div>
+        @for (log of recentLogs; track log.id) {
+          <div class="activity-item">
+            <span class="activity-icon" [class.green]="log.entityType === 'Payment'" [class.amber]="log.entityType === 'Maintenance'">
+              @switch (log.entityType) {
+                @case ('Payment') {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
+                }
+                @case ('Maintenance') {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 1 0 5.4 5.4L14.5 17.3a2 2 0 0 1-2.8 0L6.7 12.3a2 2 0 0 1 0-2.8z"/></svg>
+                }
+                @case ('Lease') {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+                }
+                @case ('Property') {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1"/></svg>
+                }
+                @default {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16v.01"/></svg>
+                }
+              }
+            </span>
+            <div class="activity-body">
+              <div class="activity-text">{{ log.description }}</div>
+              <div class="activity-meta">{{ relativeTime(log.createdAt) }}</div>
+            </div>
+          </div>
+        }
+      </div>
+    }
   }
-}
+
+</div>

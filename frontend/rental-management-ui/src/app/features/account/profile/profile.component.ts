@@ -70,4 +70,13 @@ export class ProfileComponent implements OnInit {
   formatDate(d: string) {
     return new Date(d).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
   }
+
+  /** Two-letter user initials for the avatar circle in the profile card. */
+  initials(): string {
+    if (!this.user) return '';
+    const f = (this.user.firstName || '').trim();
+    const l = (this.user.lastName || '').trim();
+    if (!f && !l) return (this.user.email || '?').slice(0, 1).toUpperCase();
+    return (f.charAt(0) + l.charAt(0)).toUpperCase();
+  }
 }

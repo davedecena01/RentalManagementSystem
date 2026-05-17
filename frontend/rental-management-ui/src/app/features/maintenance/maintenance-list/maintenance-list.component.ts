@@ -43,6 +43,11 @@ export class MaintenanceListComponent implements OnInit {
     });
   }
 
+  /** Count of open / in-progress requests for hero stats. */
+  openCount() { return this.requests.filter(r => r.status !== 'Resolved').length; }
+  /** Count of resolved requests for hero stats. */
+  resolvedCount() { return this.requests.filter(r => r.status === 'Resolved').length; }
+
   openResolve(r: MaintenanceRequest) {
     this.selectedRequest = r;
     this.resolveForm.reset({ resolutionNotes: '' });

@@ -1,116 +1,155 @@
-<div class="page-header">
-  <h1>Payments</h1>
-  <p class="page-subtitle">Rent payment records</p>
-</div>
+<div class="page-container">
 
-<div class="filter-bar">
-  <select [(ngModel)]="statusFilter" (change)="load()" style="width:160px">
-    <option value="">All Statuses</option>
-    <option value="Unpaid">Unpaid</option>
-    <option value="Partial">Partial</option>
-    <option value="Paid">Paid</option>
-  </select>
-</div>
-
-@if (loading) {
-  <div class="loading">Loading payments…</div>
-} @else if (payments.length === 0) {
-  <div class="empty-state">No payments found.</div>
-} @else {
-  <div class="table-card">
-    <table>
-      <thead>
-        <tr>
-          <th>Property</th>
-          @if (isLandlord()) { <th>Tenant</th> }
-          <th>Due Month</th>
-          <th>Amount Due</th>
-          <th>Amount Paid</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (p of payments; track p.id) {
-          <tr>
-            <td>{{ p.propertyName }}</td>
-            @if (isLandlord()) { <td>{{ p.tenantName }}</td> }
-            <td>{{ formatDate(p.dueDate) }}</td>
-            <td>{{ formatMoney(p.amountDue) }}</td>
-            <td>{{ formatMoney(p.amountPaid) }}</td>
-            <td><span class="badge {{ statusClass(p.status) }}">{{ p.status }}</span></td>
-            <td>
-              @if (p.status !== 'Paid') {
-                <div class="table-actions">
-                  @if (!isLandlord()) {
-                    <button class="btn btn-primary btn-sm" (click)="payWithStripe(p)">Pay Online</button>
-                  }
-                  <button class="btn btn-secondary btn-sm" (click)="openManualPay(p)">Manual Pay</button>
-                  @if (p.status === 'Partial') {
-                    <a [routerLink]="['/payments', p.id, 'receipt-preview']" class="btn btn-secondary btn-sm">View Receipt</a>
-                  }
-                </div>
-              } @else {
-                <div class="table-actions">
-                  @if (p.proofFileUrl) {
-                    <button class="btn btn-secondary btn-sm" (click)="viewPaymentProof(p)" [disabled]="loadingProof[p.id]">
-                      {{ loadingProof[p.id] ? 'Loading…' : 'Proof' }}
-                    </button>
-                  }
-                  <a [routerLink]="['/payments', p.id, 'receipt-preview']" class="btn btn-secondary btn-sm">View Receipt</a>
-                </div>
-              }
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  </div>
-}
-
-@if (showManualPayModal && selectedPayment) {
-  <div class="modal-backdrop" (click)="closeManualPay()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <h2>Record Manual Payment</h2>
-      <p style="color:var(--color-text-muted);margin-bottom:20px">
-        {{ selectedPayment.propertyName }} — {{ formatDate(selectedPayment.dueDate) }}<br>
-        Balance: {{ formatMoney(selectedPayment.amountDue - selectedPayment.amountPaid) }}
-      </p>
-      <form [formGroup]="manualForm" (ngSubmit)="submitManualPay()">
-        <div class="form-group">
-          <label>Amount Paid (₱) *</label>
-          <input formControlName="amountPaid" type="number" min="0.01" step="0.01" />
-          @if (hasError('amountPaid')) { <span class="field-error">Amount must be greater than zero.</span> }
-        </div>
-        <div class="form-group">
-          <label>Notes</label>
-          <textarea formControlName="notes" rows="2" placeholder="e.g. Cash payment via GCash…"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Payment Proof (optional)</label>
-          @if (!proofFile) {
-            <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf"
-              (change)="onFileSelect($event)" style="font-size:13px" />
-            <div style="font-size:12px;color:var(--color-text-muted);margin-top:4px">JPG, PNG, WebP or PDF · Max 5 MB</div>
-          } @else {
-            <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-              @if (uploadingProof) {
-                <span style="font-size:13px;color:var(--color-text-muted)">Uploading…</span>
-              } @else if (proofFileUrl) {
-                <span class="badge badge-green" style="font-size:12px">✓ Uploaded</span>
-                <span style="font-size:12px;color:var(--color-text-muted)">{{ proofFile.name }}</span>
-              }
-              <button type="button" class="btn btn-secondary btn-sm" (click)="clearProof()">Remove</button>
-            </div>
-          }
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" (click)="closeManualPay()">Cancel</button>
-          <button type="submit" class="btn btn-primary" [disabled]="savingPay">
-            {{ savingPay ? 'Saving…' : 'Record Payment' }}
-          </button>
-        </div>
-      </form>
+  <section class="page-hero">
+    <div class="ph-inner">
+      <div class="ph-titles">
+        <div class="ph-eyebrow">Cashflow</div>
+        <h1>Payments</h1>
+        <p class="ph-sub">Rent payment records — both online (Stripe) and manual entries with proof of payment.</p>
+      </div>
     </div>
+
+    @if (!loading && payments.length > 0) {
+      <div class="ph-stats">
+        <div class="ph-stat">
+          <div class="num">{{ payments.length }}</div>
+          <div class="lbl">Transactions</div>
+        </div>
+        <div class="ph-stat">
+          <div class="num"><span class="currency">₱</span>{{ totalPaidPlain() }}</div>
+          <div class="lbl">Collected</div>
+        </div>
+        <div class="ph-stat">
+          <div class="num"><span class="currency">₱</span>{{ totalOutstandingPlain() }}</div>
+          <div class="lbl">Outstanding</div>
+        </div>
+      </div>
+    }
+  </section>
+
+  <div class="filter-bar" style="margin-bottom:14px">
+    <span style="font-size:12.5px;color:var(--color-text-muted);margin-right:4px;font-weight:500">Filter by status:</span>
+    <button class="filter-chip" [class.active]="!statusFilter" (click)="setStatusFilter('')">All</button>
+    <button class="filter-chip" [class.active]="statusFilter === 'Paid'" (click)="setStatusFilter('Paid')">Paid</button>
+    <button class="filter-chip" [class.active]="statusFilter === 'Partial'" (click)="setStatusFilter('Partial')">Partial</button>
+    <button class="filter-chip" [class.active]="statusFilter === 'Unpaid'" (click)="setStatusFilter('Unpaid')">Unpaid</button>
   </div>
-}
+
+  @if (loading) {
+    <div class="loading">Loading payments…</div>
+  } @else if (payments.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="6" width="20" height="12" rx="2"/>
+          <circle cx="12" cy="12" r="2.5"/>
+        </svg>
+      </div>
+      <h3>No payments yet</h3>
+      <p class="empty-sub">Payments will appear here once invoices are generated and rent is collected.</p>
+    </div>
+  } @else {
+    <div class="table-card">
+      <div class="table-card-head">
+        <div>
+          <h2>{{ statusFilter ? statusFilter + ' payments' : 'All payments' }}</h2>
+          <div class="sub">{{ payments.length }} {{ payments.length === 1 ? 'record' : 'records' }}</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Property</th>
+            @if (isLandlord()) { <th>Tenant</th> }
+            <th>Due month</th>
+            <th style="text-align:right">Due</th>
+            <th style="text-align:right">Paid</th>
+            <th>Status</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of payments; track p.id) {
+            <tr>
+              <td><span class="cell-primary">{{ p.propertyName }}</span></td>
+              @if (isLandlord()) { <td>{{ p.tenantName }}</td> }
+              <td class="cell-money" style="font-weight:400">{{ formatDate(p.dueDate) }}</td>
+              <td style="text-align:right" class="cell-money">{{ formatMoney(p.amountDue) }}</td>
+              <td style="text-align:right" class="cell-money">{{ formatMoney(p.amountPaid) }}</td>
+              <td><span class="badge {{ statusClass(p.status) }}">{{ p.status }}</span></td>
+              <td style="text-align:right">
+                @if (p.status !== 'Paid') {
+                  <div class="table-actions" style="justify-content:flex-end">
+                    @if (!isLandlord()) {
+                      <button class="btn btn-primary btn-sm" (click)="payWithStripe(p)">Pay online</button>
+                    }
+                    <button class="btn btn-secondary btn-sm" (click)="openManualPay(p)">Manual pay</button>
+                    @if (p.status === 'Partial') {
+                      <a [routerLink]="['/payments', p.id, 'receipt-preview']" class="btn btn-secondary btn-sm">Receipt</a>
+                    }
+                  </div>
+                } @else {
+                  <div class="table-actions" style="justify-content:flex-end">
+                    @if (p.proofFileUrl) {
+                      <button class="btn btn-secondary btn-sm" (click)="viewPaymentProof(p)" [disabled]="loadingProof[p.id]">
+                        {{ loadingProof[p.id] ? 'Loading…' : 'Proof' }}
+                      </button>
+                    }
+                    <a [routerLink]="['/payments', p.id, 'receipt-preview']" class="btn btn-secondary btn-sm">Receipt</a>
+                  </div>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (showManualPayModal && selectedPayment) {
+    <div class="modal-backdrop" (click)="closeManualPay()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Record manual payment</h2>
+        <p style="color:var(--color-text-muted);margin-bottom:20px;font-size:13px;line-height:1.5">
+          <strong style="color:var(--color-text)">{{ selectedPayment.propertyName }}</strong> · {{ formatDate(selectedPayment.dueDate) }}<br>
+          Balance: <strong style="color:var(--color-error)">{{ formatMoney(selectedPayment.amountDue - selectedPayment.amountPaid) }}</strong>
+        </p>
+        <form [formGroup]="manualForm" (ngSubmit)="submitManualPay()">
+          <div class="form-group">
+            <label>Amount paid (₱) *</label>
+            <input formControlName="amountPaid" type="number" min="0.01" step="0.01" />
+            @if (hasError('amountPaid')) { <span class="field-error">Amount must be greater than zero.</span> }
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea formControlName="notes" rows="2" placeholder="e.g. Cash payment via GCash…"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Payment proof (optional)</label>
+            @if (!proofFile) {
+              <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf"
+                (change)="onFileSelect($event)" style="font-size:13px" />
+              <small style="color:var(--color-text-muted)">JPG, PNG, WebP or PDF · max 5 MB</small>
+            } @else {
+              <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+                @if (uploadingProof) {
+                  <span style="font-size:13px;color:var(--color-text-muted)">Uploading…</span>
+                } @else if (proofFileUrl) {
+                  <span class="badge badge-green">✓ Uploaded</span>
+                  <span style="font-size:12px;color:var(--color-text-muted)">{{ proofFile.name }}</span>
+                }
+                <button type="button" class="btn btn-secondary btn-sm" (click)="clearProof()">Remove</button>
+              </div>
+            }
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeManualPay()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="savingPay">
+              {{ savingPay ? 'Saving…' : 'Record payment' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

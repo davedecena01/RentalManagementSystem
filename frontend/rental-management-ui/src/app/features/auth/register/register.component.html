@@ -1,57 +1,148 @@
-<div class="auth-container">
-  <div class="auth-card">
-    <h1>Create account</h1>
-    <p class="auth-subtitle">Rental Property Manager</p>
+<div class="auth-shell">
+  <!-- Form side -->
+  <div class="auth-form-side">
+    <a routerLink="/auth/login" class="auth-brand-lockup" aria-label="RentalPM home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+          <rect x="1.5" y="1.5" width="31" height="31" rx="8" fill="#2563eb"/>
+          <path d="M8 23.5V13L17 7l9 6v10.5" stroke="#fff" stroke-width="1.7" stroke-linejoin="round" fill="none"/>
+          <path d="M13 23.5V17h8v6.5" stroke="#fff" stroke-width="1.7" stroke-linejoin="round" fill="none"/>
+          <circle cx="17" cy="20" r="0.9" fill="#fff"/>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span>RentalPM</span>
+        <span class="brand-sub">Property Operations</span>
+      </span>
+    </a>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <div class="form-row">
-        <div class="form-group">
-          <label for="firstName">First name</label>
-          <input id="firstName" type="text" formControlName="firstName" />
-          @if (firstName.invalid && firstName.touched) {
-            <span class="field-error">First name is required.</span>
-          }
-        </div>
-        <div class="form-group">
-          <label for="lastName">Last name</label>
-          <input id="lastName" type="text" formControlName="lastName" />
-          @if (lastName.invalid && lastName.touched) {
-            <span class="field-error">Last name is required.</span>
-          }
-        </div>
+    <div class="auth-form-body">
+      <div class="auth-card-new">
+        <h1>Create your account</h1>
+        <p class="lead">Start managing properties, leases and rent in one calm dashboard. 14-day trial · no card required.</p>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group">
+              <label for="firstName">First name</label>
+              <input id="firstName" type="text" formControlName="firstName" autocomplete="given-name" />
+              @if (firstName.invalid && firstName.touched) {
+                <span class="field-error">First name is required.</span>
+              }
+            </div>
+            <div class="form-group">
+              <label for="lastName">Last name</label>
+              <input id="lastName" type="text" formControlName="lastName" autocomplete="family-name" />
+              @if (lastName.invalid && lastName.touched) {
+                <span class="field-error">Last name is required.</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Work email</label>
+            <input id="email" type="email" formControlName="email" placeholder="you@example.com" autocomplete="email" />
+            @if (email.invalid && email.touched) {
+              <span class="field-error">Enter a valid email address.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" type="password" formControlName="password" placeholder="At least 8 characters" autocomplete="new-password" />
+            @if (password.invalid && password.touched) {
+              <span class="field-error">Password must be at least 8 characters.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirm password</label>
+            <input id="confirmPassword" type="password" formControlName="confirmPassword" autocomplete="new-password" />
+            @if (form.hasError('passwordMismatch') && confirmPassword.touched) {
+              <span class="field-error">Passwords do not match.</span>
+            }
+          </div>
+
+          <label class="check" style="margin:6px 0 14px;display:flex;gap:7px;align-items:center;font-size:12.5px;color:var(--color-text-2)">
+            <input type="checkbox" checked style="width:15px;height:15px;accent-color:var(--color-primary)" />
+            <span>I agree to the <a href="#" style="color:var(--color-primary-dark);font-weight:500;text-decoration:none">Terms of Service</a> and <a href="#" style="color:var(--color-primary-dark);font-weight:500;text-decoration:none">Privacy Policy</a></span>
+          </label>
+
+          <button type="submit" class="btn btn-primary btn-full" [disabled]="loading">
+            {{ loading ? 'Creating account…' : 'Create account' }}
+          </button>
+        </form>
+
+        <p style="text-align:center;margin-top:18px;font-size:13px;color:var(--color-text-muted)">
+          Already have an account? <a routerLink="/auth/login" style="color:var(--color-primary-dark);font-weight:500;text-decoration:none">Sign in</a>
+        </p>
       </div>
+    </div>
 
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input id="email" type="email" formControlName="email" placeholder="you@example.com" />
-        @if (email.invalid && email.touched) {
-          <span class="field-error">Enter a valid email address.</span>
-        }
+    <div class="auth-foot-row">
+      <span>© 2026 RentalPM</span>
+      <div class="legal-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Help</a>
       </div>
-
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input id="password" type="password" formControlName="password" placeholder="Min. 8 characters" />
-        @if (password.invalid && password.touched) {
-          <span class="field-error">Password must be at least 8 characters.</span>
-        }
-      </div>
-
-      <div class="form-group">
-        <label for="confirmPassword">Confirm password</label>
-        <input id="confirmPassword" type="password" formControlName="confirmPassword" />
-        @if (form.hasError('passwordMismatch') && confirmPassword.touched) {
-          <span class="field-error">Passwords do not match.</span>
-        }
-      </div>
-
-      <button type="submit" class="btn btn-primary btn-full" [disabled]="loading">
-        {{ loading ? 'Creating account…' : 'Create account' }}
-      </button>
-    </form>
-
-    <p class="auth-footer">
-      Already have an account? <a routerLink="/auth/login">Sign in</a>
-    </p>
+    </div>
   </div>
+
+  <aside class="auth-art" aria-hidden="true">
+    <div class="art-grid"></div>
+    <div class="art-glow"></div>
+    <div class="art-glow-2"></div>
+
+    <div class="art-inner">
+      <div class="art-eyebrow">Trusted by property owners</div>
+      <h2 class="art-headline">Built for landlords who manage <em>more than one unit.</em></h2>
+      <p class="art-lead">
+        From the first tenant invitation to the final move-out receipt — RentalPM handles
+        the paperwork, the math, and the paper trail so you don't have to.
+      </p>
+
+      <ul class="art-feature-list">
+        <li><span class="dot">✓</span> Onboard tenants by email — they self-serve sign-up and document upload</li>
+        <li><span class="dot">✓</span> Set deposit, advance and provision terms once, reuse on every lease</li>
+        <li><span class="dot">✓</span> Receive payments via bank transfer, GCash, Maya or cash — all reconciled</li>
+        <li><span class="dot">✓</span> Generate audit-ready monthly reports in two clicks</li>
+      </ul>
+
+      <div class="art-stats">
+        <div class="art-stat"><div class="num">4,200+</div><div class="lbl">Properties managed</div></div>
+        <div class="art-stat"><div class="num">₱1.8B</div><div class="lbl">Processed in 2025</div></div>
+        <div class="art-stat"><div class="num">97%</div><div class="lbl">On-time collection</div></div>
+      </div>
+    </div>
+
+    <svg class="art-buildings" viewBox="0 0 520 120" preserveAspectRatio="xMidYMax meet">
+      <g fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.3">
+        <rect x="10" y="40" width="50" height="80" />
+        <line x1="10" y1="56" x2="60" y2="56"/><line x1="10" y1="72" x2="60" y2="72"/><line x1="10" y1="88" x2="60" y2="88"/><line x1="10" y1="104" x2="60" y2="104"/>
+        <line x1="22" y1="40" x2="22" y2="120"/><line x1="34" y1="40" x2="34" y2="120"/><line x1="46" y1="40" x2="46" y2="120"/>
+        <rect x="74" y="20" width="64" height="100" />
+        <line x1="74" y1="36" x2="138" y2="36"/><line x1="74" y1="52" x2="138" y2="52"/><line x1="74" y1="68" x2="138" y2="68"/><line x1="74" y1="84" x2="138" y2="84"/><line x1="74" y1="100" x2="138" y2="100"/>
+        <line x1="90" y1="20" x2="90" y2="120"/><line x1="106" y1="20" x2="106" y2="120"/><line x1="122" y1="20" x2="122" y2="120"/>
+        <rect x="152" y="60" width="42" height="60" />
+        <line x1="152" y1="76" x2="194" y2="76"/><line x1="152" y1="92" x2="194" y2="92"/><line x1="152" y1="108" x2="194" y2="108"/>
+        <line x1="166" y1="60" x2="166" y2="120"/><line x1="180" y1="60" x2="180" y2="120"/>
+        <rect x="208" y="10" width="58" height="110" />
+        <line x1="208" y1="26" x2="266" y2="26"/><line x1="208" y1="42" x2="266" y2="42"/><line x1="208" y1="58" x2="266" y2="58"/><line x1="208" y1="74" x2="266" y2="74"/><line x1="208" y1="90" x2="266" y2="90"/><line x1="208" y1="106" x2="266" y2="106"/>
+        <line x1="222" y1="10" x2="222" y2="120"/><line x1="236" y1="10" x2="236" y2="120"/><line x1="250" y1="10" x2="250" y2="120"/>
+        <rect x="280" y="48" width="46" height="72" />
+        <line x1="280" y1="64" x2="326" y2="64"/><line x1="280" y1="80" x2="326" y2="80"/><line x1="280" y1="96" x2="326" y2="96"/>
+        <line x1="294" y1="48" x2="294" y2="120"/><line x1="308" y1="48" x2="308" y2="120"/>
+        <rect x="340" y="30" width="68" height="90" />
+        <line x1="340" y1="46" x2="408" y2="46"/><line x1="340" y1="62" x2="408" y2="62"/><line x1="340" y1="78" x2="408" y2="78"/><line x1="340" y1="94" x2="408" y2="94"/>
+        <line x1="356" y1="30" x2="356" y2="120"/><line x1="374" y1="30" x2="374" y2="120"/><line x1="390" y1="30" x2="390" y2="120"/>
+        <rect x="422" y="68" width="38" height="52" />
+        <line x1="422" y1="84" x2="460" y2="84"/><line x1="422" y1="100" x2="460" y2="100"/>
+        <line x1="434" y1="68" x2="434" y2="120"/><line x1="446" y1="68" x2="446" y2="120"/>
+        <rect x="476" y="50" width="36" height="70" />
+        <line x1="476" y1="66" x2="512" y2="66"/><line x1="476" y1="82" x2="512" y2="82"/>
+        <line x1="488" y1="50" x2="488" y2="120"/><line x1="500" y1="50" x2="500" y2="120"/>
+      </g>
+    </svg>
+  </aside>
 </div>

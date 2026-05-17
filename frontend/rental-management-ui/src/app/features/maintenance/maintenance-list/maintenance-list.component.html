@@ -1,86 +1,140 @@
-<div class="page-header">
-  <div>
-    <h1>Maintenance</h1>
-    <p class="page-subtitle">{{ isLandlord() ? 'All maintenance requests for your properties' : 'Your submitted requests' }}</p>
-  </div>
-  @if (!isLandlord()) {
-    <a routerLink="/maintenance/new" class="btn btn-primary">+ New Request</a>
+<div class="page-container">
+
+  <section class="page-hero">
+    <div class="ph-inner">
+      <div class="ph-titles">
+        <div class="ph-eyebrow">Operations</div>
+        <h1>Maintenance</h1>
+        <p class="ph-sub">
+          @if (isLandlord()) {
+            All maintenance requests for your properties — track priority, status and resolution.
+          } @else {
+            Your submitted maintenance requests and their status.
+          }
+        </p>
+      </div>
+      @if (!isLandlord()) {
+        <div class="ph-actions">
+          <a routerLink="/maintenance/new" class="btn btn-primary">+ New request</a>
+        </div>
+      }
+    </div>
+
+    @if (!loading && requests.length > 0) {
+      <div class="ph-stats">
+        <div class="ph-stat">
+          <div class="num">{{ requests.length }}</div>
+          <div class="lbl">Total requests</div>
+        </div>
+        <div class="ph-stat">
+          <div class="num">{{ openCount() }}</div>
+          <div class="lbl">Open</div>
+        </div>
+        <div class="ph-stat">
+          <div class="num">{{ resolvedCount() }}</div>
+          <div class="lbl">Resolved</div>
+        </div>
+      </div>
+    }
+  </section>
+
+  @if (loading) {
+    <div class="loading">Loading requests…</div>
+  } @else if (requests.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a4 4 0 1 0 5.4 5.4L14.5 17.3a2 2 0 0 1-2.8 0L6.7 12.3a2 2 0 0 1 0-2.8z"/>
+          <path d="M14.5 6.5l3 3"/>
+        </svg>
+      </div>
+      <h3>
+        @if (isLandlord()) {
+          No maintenance requests yet
+        } @else {
+          You haven't submitted any requests yet
+        }
+      </h3>
+      <p class="empty-sub">
+        @if (isLandlord()) {
+          When your tenants report issues, they'll appear here ready for triage and resolution.
+        } @else {
+          Got a leak, a broken fixture or anything that needs attention? Let your landlord know.
+        }
+      </p>
+      @if (!isLandlord()) {
+        <a routerLink="/maintenance/new" class="btn btn-primary">+ Submit a request</a>
+      }
+    </div>
+  } @else {
+    <div class="table-card">
+      <div class="table-card-head">
+        <div>
+          <h2>All requests</h2>
+          <div class="sub">{{ requests.length }} {{ requests.length === 1 ? 'request' : 'requests' }} · sorted by most recent</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Issue</th>
+            <th>Property</th>
+            @if (isLandlord()) { <th>Tenant</th> }
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            @if (isLandlord()) { <th style="text-align:right">Actions</th> }
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of requests; track r.id) {
+            <tr>
+              <td>
+                <span class="cell-primary">{{ r.title }}</span>
+                <span class="cell-sub">{{ r.description }}</span>
+              </td>
+              <td>{{ r.propertyName }}</td>
+              @if (isLandlord()) { <td>{{ r.tenantName }}</td> }
+              <td><span class="badge {{ priorityClass(r.priority) }}">{{ r.priority }}</span></td>
+              <td><span class="badge {{ statusClass(r.status) }}">{{ statusLabel(r.status) }}</span></td>
+              <td class="cell-money" style="font-weight:400;color:var(--color-text-muted)">{{ r.createdAt | date:'MMM d, y' }}</td>
+              @if (isLandlord()) {
+                <td style="text-align:right">
+                  @if (r.status !== 'Resolved') {
+                    <button class="btn btn-primary btn-sm" (click)="openResolve(r)">Resolve</button>
+                  } @else {
+                    <span style="color:var(--color-text-muted);font-size:12.5px">✓ Resolved</span>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (showResolveModal && selectedRequest) {
+    <div class="modal-backdrop" (click)="closeResolve()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Resolve request</h2>
+        <p style="color:var(--color-text-muted);margin-bottom:20px;font-size:13px;line-height:1.5">
+          <strong style="color:var(--color-text)">{{ selectedRequest.title }}</strong><br>
+          {{ selectedRequest.propertyName }} · reported by {{ selectedRequest.tenantName }}
+        </p>
+        <form [formGroup]="resolveForm" (ngSubmit)="submitResolve()">
+          <div class="form-group">
+            <label>Resolution notes</label>
+            <textarea formControlName="resolutionNotes" rows="3" placeholder="Describe what was done to resolve this issue…"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeResolve()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="savingResolve">
+              {{ savingResolve ? 'Saving…' : 'Mark resolved' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   }
 </div>
-
-@if (loading) {
-  <div class="loading">Loading requests…</div>
-} @else if (requests.length === 0) {
-  <div class="empty-state">
-    @if (isLandlord()) {
-      No maintenance requests yet.
-    } @else {
-      You haven't submitted any maintenance requests yet.
-      <a routerLink="/maintenance/new" class="btn btn-primary" style="margin-top:16px;display:inline-block">Submit a Request</a>
-    }
-  </div>
-} @else {
-  <div class="table-card">
-    <table>
-      <thead>
-        <tr>
-          <th>Property</th>
-          @if (isLandlord()) { <th>Tenant</th> }
-          <th>Title</th>
-          <th>Priority</th>
-          <th>Status</th>
-          <th>Submitted</th>
-          @if (isLandlord()) { <th>Actions</th> }
-        </tr>
-      </thead>
-      <tbody>
-        @for (r of requests; track r.id) {
-          <tr>
-            <td>{{ r.propertyName }}</td>
-            @if (isLandlord()) { <td>{{ r.tenantName }}</td> }
-            <td>
-              <strong>{{ r.title }}</strong>
-              <div style="color:var(--color-text-muted);font-size:12px;margin-top:2px">{{ r.description }}</div>
-            </td>
-            <td><span class="badge {{ priorityClass(r.priority) }}">{{ r.priority }}</span></td>
-            <td><span class="badge {{ statusClass(r.status) }}">{{ statusLabel(r.status) }}</span></td>
-            <td>{{ r.createdAt | date:'MMM d, y' }}</td>
-            @if (isLandlord()) {
-              <td>
-                @if (r.status !== 'Resolved') {
-                  <button class="btn btn-primary btn-sm" (click)="openResolve(r)">Resolve</button>
-                } @else {
-                  <span style="color:var(--color-text-muted);font-size:13px">Resolved</span>
-                }
-              </td>
-            }
-          </tr>
-        }
-      </tbody>
-    </table>
-  </div>
-}
-
-@if (showResolveModal && selectedRequest) {
-  <div class="modal-backdrop" (click)="closeResolve()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <h2>Resolve Request</h2>
-      <p style="color:var(--color-text-muted);margin-bottom:20px">
-        <strong>{{ selectedRequest.title }}</strong><br>
-        {{ selectedRequest.propertyName }} — {{ selectedRequest.tenantName }}
-      </p>
-      <form [formGroup]="resolveForm" (ngSubmit)="submitResolve()">
-        <div class="form-group">
-          <label>Resolution Notes</label>
-          <textarea formControlName="resolutionNotes" rows="3" placeholder="Describe what was done to resolve this issue…"></textarea>
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" (click)="closeResolve()">Cancel</button>
-          <button type="submit" class="btn btn-primary" [disabled]="savingResolve">
-            {{ savingResolve ? 'Saving…' : 'Mark Resolved' }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-}

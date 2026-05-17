@@ -1,36 +1,136 @@
-<div class="auth-container">
-  <div class="auth-card">
-    <h1>Sign in</h1>
-    <p class="auth-subtitle">Rental Property Manager</p>
+<div class="auth-shell">
+  <!-- Form side -->
+  <div class="auth-form-side">
+    <a routerLink="/auth/login" class="auth-brand-lockup" aria-label="RentalPM home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+          <rect x="1.5" y="1.5" width="31" height="31" rx="8" fill="#2563eb"/>
+          <path d="M8 23.5V13L17 7l9 6v10.5" stroke="#fff" stroke-width="1.7" stroke-linejoin="round" fill="none"/>
+          <path d="M13 23.5V17h8v6.5" stroke="#fff" stroke-width="1.7" stroke-linejoin="round" fill="none"/>
+          <circle cx="17" cy="20" r="0.9" fill="#fff"/>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span>RentalPM</span>
+        <span class="brand-sub">Property Operations</span>
+      </span>
+    </a>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input id="email" type="email" formControlName="email" placeholder="you@example.com" autocomplete="email" />
-        @if (email.invalid && email.touched) {
-          <span class="field-error">Enter a valid email address.</span>
-        }
+    <div class="auth-form-body">
+      <div class="auth-card-new">
+        <h1>Welcome back</h1>
+        <p class="lead">Sign in to manage your properties, leases, payments and maintenance — all in one place.</p>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" type="email" formControlName="email" placeholder="you@example.com" autocomplete="email" />
+            @if (email.invalid && email.touched) {
+              <span class="field-error">Enter a valid email address.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" type="password" formControlName="password" placeholder="••••••••" autocomplete="current-password" />
+            @if (password.invalid && password.touched) {
+              <span class="field-error">Password must be at least 8 characters.</span>
+            }
+          </div>
+
+          <div class="form-actions-line">
+            <label class="check"><input type="checkbox" /> Keep me signed in</label>
+            <a routerLink="/auth/forgot-password" class="link-subtle">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full" [disabled]="loading">
+            {{ loading ? 'Signing in…' : 'Sign in' }}
+          </button>
+        </form>
+
+        <div class="auth-divider"><span>or continue with</span></div>
+
+        <button type="button" class="btn-secondary-full">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M21.6 12.227c0-.815-.073-1.6-.21-2.354H12v4.452h5.382a4.6 4.6 0 0 1-2 3.022v2.51h3.237c1.892-1.745 2.981-4.31 2.981-7.63z" fill="#4285F4"/>
+            <path d="M12 22c2.7 0 4.964-.895 6.619-2.422l-3.237-2.511c-.897.6-2.04.957-3.382.957-2.602 0-4.806-1.756-5.59-4.119H3.062v2.59A9.997 9.997 0 0 0 12 22z" fill="#34A853"/>
+            <path d="M6.41 13.905a6.005 6.005 0 0 1 0-3.81V7.508H3.063a9.997 9.997 0 0 0 0 8.984l3.346-2.587z" fill="#FBBC05"/>
+            <path d="M12 5.977c1.469 0 2.788.505 3.825 1.495l2.869-2.869C16.96 3.075 14.7 2 12 2A9.997 9.997 0 0 0 3.063 7.508l3.346 2.587C7.194 7.732 9.398 5.977 12 5.977z" fill="#EA4335"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        <p style="text-align:center;margin-top:18px;font-size:13px;color:var(--color-text-muted)">
+          New to RentalPM? <a routerLink="/auth/register" style="color:var(--color-primary-dark);font-weight:500;text-decoration:none">Create an account</a>
+        </p>
       </div>
+    </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input id="password" type="password" formControlName="password" placeholder="••••••••" autocomplete="current-password" />
-        @if (password.invalid && password.touched) {
-          <span class="field-error">Password must be at least 8 characters.</span>
-        }
+    <div class="auth-foot-row">
+      <span>© 2026 RentalPM</span>
+      <div class="legal-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Help</a>
       </div>
-
-      <div class="form-actions">
-        <a routerLink="/auth/forgot-password" class="link-subtle">Forgot password?</a>
-      </div>
-
-      <button type="submit" class="btn btn-primary btn-full" [disabled]="loading">
-        {{ loading ? 'Signing in…' : 'Sign in' }}
-      </button>
-    </form>
-
-    <p class="auth-footer">
-      Don't have an account? <a routerLink="/auth/register">Register</a>
-    </p>
+    </div>
   </div>
+
+  <!-- Art side -->
+  <aside class="auth-art" aria-hidden="true">
+    <div class="art-grid"></div>
+    <div class="art-glow"></div>
+    <div class="art-glow-2"></div>
+
+    <div class="art-inner">
+      <div class="art-eyebrow">Property Operations · v3</div>
+      <h2 class="art-headline">Run your portfolio like a <em>real operation.</em></h2>
+      <p class="art-lead">
+        RentalPM brings every property, lease, payment and ticket into one calm,
+        auditable dashboard — so you can stop chasing paperwork and start running the business.
+      </p>
+
+      <ul class="art-feature-list">
+        <li><span class="dot">✓</span> Track rent collection and outstanding balances in real time</li>
+        <li><span class="dot">✓</span> Generate signed leases from your own clause library</li>
+        <li><span class="dot">✓</span> Resolve maintenance tickets with vendors and tenants in one thread</li>
+        <li><span class="dot">✓</span> Issue official receipts on paper, email or PDF</li>
+      </ul>
+
+      <div class="art-stats">
+        <div class="art-stat"><div class="num">4,200+</div><div class="lbl">Properties managed</div></div>
+        <div class="art-stat"><div class="num">₱1.8B</div><div class="lbl">Processed in 2025</div></div>
+        <div class="art-stat"><div class="num">97%</div><div class="lbl">On-time collection</div></div>
+      </div>
+    </div>
+
+    <svg class="art-buildings" viewBox="0 0 520 120" preserveAspectRatio="xMidYMax meet">
+      <g fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.3">
+        <rect x="10" y="40" width="50" height="80" />
+        <line x1="10" y1="56" x2="60" y2="56"/><line x1="10" y1="72" x2="60" y2="72"/><line x1="10" y1="88" x2="60" y2="88"/><line x1="10" y1="104" x2="60" y2="104"/>
+        <line x1="22" y1="40" x2="22" y2="120"/><line x1="34" y1="40" x2="34" y2="120"/><line x1="46" y1="40" x2="46" y2="120"/>
+        <rect x="74" y="20" width="64" height="100" />
+        <line x1="74" y1="36" x2="138" y2="36"/><line x1="74" y1="52" x2="138" y2="52"/><line x1="74" y1="68" x2="138" y2="68"/><line x1="74" y1="84" x2="138" y2="84"/><line x1="74" y1="100" x2="138" y2="100"/>
+        <line x1="90" y1="20" x2="90" y2="120"/><line x1="106" y1="20" x2="106" y2="120"/><line x1="122" y1="20" x2="122" y2="120"/>
+        <rect x="152" y="60" width="42" height="60" />
+        <line x1="152" y1="76" x2="194" y2="76"/><line x1="152" y1="92" x2="194" y2="92"/><line x1="152" y1="108" x2="194" y2="108"/>
+        <line x1="166" y1="60" x2="166" y2="120"/><line x1="180" y1="60" x2="180" y2="120"/>
+        <rect x="208" y="10" width="58" height="110" />
+        <line x1="208" y1="26" x2="266" y2="26"/><line x1="208" y1="42" x2="266" y2="42"/><line x1="208" y1="58" x2="266" y2="58"/><line x1="208" y1="74" x2="266" y2="74"/><line x1="208" y1="90" x2="266" y2="90"/><line x1="208" y1="106" x2="266" y2="106"/>
+        <line x1="222" y1="10" x2="222" y2="120"/><line x1="236" y1="10" x2="236" y2="120"/><line x1="250" y1="10" x2="250" y2="120"/>
+        <rect x="280" y="48" width="46" height="72" />
+        <line x1="280" y1="64" x2="326" y2="64"/><line x1="280" y1="80" x2="326" y2="80"/><line x1="280" y1="96" x2="326" y2="96"/><line x1="280" y1="112" x2="326" y2="112"/>
+        <line x1="294" y1="48" x2="294" y2="120"/><line x1="308" y1="48" x2="308" y2="120"/>
+        <rect x="340" y="30" width="68" height="90" />
+        <line x1="340" y1="46" x2="408" y2="46"/><line x1="340" y1="62" x2="408" y2="62"/><line x1="340" y1="78" x2="408" y2="78"/><line x1="340" y1="94" x2="408" y2="94"/>
+        <line x1="356" y1="30" x2="356" y2="120"/><line x1="374" y1="30" x2="374" y2="120"/><line x1="390" y1="30" x2="390" y2="120"/>
+        <rect x="422" y="68" width="38" height="52" />
+        <line x1="422" y1="84" x2="460" y2="84"/><line x1="422" y1="100" x2="460" y2="100"/>
+        <line x1="434" y1="68" x2="434" y2="120"/><line x1="446" y1="68" x2="446" y2="120"/>
+        <rect x="476" y="50" width="36" height="70" />
+        <line x1="476" y1="66" x2="512" y2="66"/><line x1="476" y1="82" x2="512" y2="82"/><line x1="476" y1="98" x2="512" y2="98"/>
+        <line x1="488" y1="50" x2="488" y2="120"/><line x1="500" y1="50" x2="500" y2="120"/>
+      </g>
+    </svg>
+  </aside>
 </div>
